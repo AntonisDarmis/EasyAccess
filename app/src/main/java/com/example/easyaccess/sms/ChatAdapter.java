@@ -2,6 +2,7 @@ package com.example.easyaccess.sms;
 
 import android.content.Context;
 import android.text.format.DateUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,9 +18,11 @@ import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter {
     private Context mContext;
-    private List<String> messages;
+    private List<Message> messages;
+    private static final int VIEW_TYPE_MESSAGE_SENT = 1;
+    private static final int VIEW_TYPE_MESSAGE_RECEIVED = 2;
 
-    public ChatAdapter(Context mContext, List<String> messages) {
+    public ChatAdapter(Context mContext, List<Message> messages) {
         this.mContext = mContext;
         this.messages = messages;
     }
@@ -27,12 +30,36 @@ public class ChatAdapter extends RecyclerView.Adapter {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return null;
+        View view;
+        if(viewType == VIEW_TYPE_MESSAGE_SENT){
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_chat_me,parent,false);
+            return new SentMessageHolder(view);
+        }
+        else{
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_chat_other,parent,false);
+            return new ReceivedMessageHolder(view);
+        }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        Message message = messages.get(position);
+        if(holder.getItemViewType() == VIEW_TYPE_MESSAGE_SENT){
 
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position){
+        Message message = (Message) messages.get(position);
+        if (message.getType() == 1){
+            return VIEW_TYPE_MESSAGE_SENT;
+        }
+        else{
+            return VIEW_TYPE_MESSAGE_RECEIVED;
+        }
     }
 
     @Override
@@ -63,5 +90,7 @@ public class ChatAdapter extends RecyclerView.Adapter {
             date = (TextView) itemView.findViewById(R.id.text_gchat_date_me);
             time = (TextView) itemView.findViewById(R.id.text_gchat_timestamp_me);
         }
+
+        public void bind(){}
     }
 }

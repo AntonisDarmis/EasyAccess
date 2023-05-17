@@ -2,12 +2,22 @@ package com.example.easyaccess.sms;
 
 public class Message {
    private String message,time,name,profileUrl;
+   int type;
 
-    public Message(String message, String time, String name, String profileUrl) {
+    public Message(String message, String time, String name, String profileUrl,int type) {
         this.message = message;
         this.time = time;
         this.name = name;
         this.profileUrl = profileUrl;
+        this.type = type;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 
     public String getMessage() {
