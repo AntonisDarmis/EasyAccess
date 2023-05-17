@@ -13,6 +13,7 @@ import android.provider.ContactsContract;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.telecom.Call;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +29,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class SMS extends AppCompatActivity implements View.OnClickListener {
 
@@ -46,7 +50,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
     private EditText filter;
     private int recyclerPosition = 0;
 
-    private List<Integer> threadIDS = new ArrayList<>();
+    private Map<Integer,String> threadIDS = new HashMap<>();
 
     // @Override
 //    public void onResume() {
@@ -116,7 +120,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onEndOfSpeech() {
-
+                speechRecognizer.stopListening();
             }
 
             @Override
@@ -126,7 +130,37 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onResults(Bundle bundle) {
-
+                ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null) {
+                    command = matches.get(0);
+                    command = command.toLowerCase(Locale.ROOT);
+                    String[] parts = command.split(" ", 2);
+                    Log.d("VOICE COMMAND IN ADD", command);
+                    //textView.setText(command);
+                    Intent intent;
+                    switch(parts[0]){
+                        case "conversation":
+                            if(parts.length>1){
+                                boolean found = false;
+                                int id = -1;
+                                String name ="";
+                                for(Map.Entry<Integer,String> entry: threadIDS.entrySet()){
+                                    if(entry.getValue().equals(capitalize(parts[1]))){
+                                        found = true;
+                                        id = entry.getKey();
+                                        name = entry.getValue();
+                                        break;
+                                    }
+                                }
+                                if(found){
+                                    intent = new Intent(SMS.this, Chat.class);
+                                    intent.putExtra("id",id);
+                                    intent.putExtra("name",name);
+                                    startActivity(intent);
+                                }
+                            }
+                    }
+                }
             }
 
             @Override
@@ -161,18 +195,18 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
      * Method to fetch all SMS thread IDS. Each conversation has its own unique ID, which will be used
      * to get the messages from each conversation separately
      *
-     * @return a list of thread IDS
+     * @return a Map of thread IDS-contact names
      */
     public void getConversationIDS() {
 
-        ArrayList<String> sms = new ArrayList<>();
         Uri uriSMSURI = Uri.parse("content://mms-sms/conversations/");
-        String[] projection = new String[]{"THREAD_ID"};
+        String[] projection = new String[]{"THREAD_ID","address"};
         Cursor cursor = getContentResolver().query(uriSMSURI, projection, null, null, "date desc");
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int thread_ID = cursor.getInt(cursor.getColumnIndexOrThrow("THREAD_ID"));
-                threadIDS.add(thread_ID);
+                String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
+                threadIDS.put(thread_ID,address);
             }
             cursor.close();
         }
@@ -187,7 +221,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
      */
     @SuppressLint("Range")
     public SMSConversation getSpecific(int id) {
-        ArrayList<String> sms = new ArrayList<String>();
         ContentResolver cr = getContentResolver();
         String[] projection = new String[]{"body", "address"};
         Uri uri = Uri.parse("content://mms-sms/conversations/" + id);
@@ -217,8 +250,8 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
     public void createConversationList() {
         conversationList.clear();
-        for (int id : threadIDS) {
-            SMSConversation conversation = getSpecific(id);
+        for (Map.Entry<Integer,String> thread: threadIDS.entrySet()) {
+            SMSConversation conversation = getSpecific(thread.getKey());
             if (conversation != null) {
                 conversationList.add(conversation);
                 adapter.notifyDataSetChanged();
@@ -263,6 +296,14 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
         }
         fields[0] = number;
         return fields;
+    }
+
+    private static final String capitalize(String str) {
+
+        if (str == null || str.length() == 0) return str;
+
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+
     }
 
 }
