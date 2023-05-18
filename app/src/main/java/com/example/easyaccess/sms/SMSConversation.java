@@ -1,7 +1,7 @@
 package com.example.easyaccess.sms;
 
 public class SMSConversation {
-    private String name,message,photo;
+    private String name, message, photo;
 
     public String getName() {
         return name;

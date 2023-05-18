@@ -38,6 +38,8 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
 
     private RecyclerView recyclerView;
+    private Map<String, String[]> contactCache = new HashMap<>(); // Cache to store already fetched contact information
+
 
     private List<SMSConversation> conversationList;
     private ConversationsAdapter adapter;
@@ -345,6 +347,9 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
     @SuppressLint("Range")
     private String[] getContactFromNumber(String number) {
+        if (contactCache.containsKey(number)) {
+            return contactCache.get(number);
+        }
         String[] fields = {"", null};
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));
         ContentResolver resolver = getContentResolver();
@@ -355,6 +360,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
                     fields[0] = cursor.getString(0);
                     fields[1] = cursor.getString(1);
                     cursor.close();
+                    contactCache.put(number, fields);
                     return fields;
                 }
             }

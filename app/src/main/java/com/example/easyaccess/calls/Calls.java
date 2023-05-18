@@ -420,7 +420,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         if (!containsContact(contactList, contact.getName())) {
                             contactList.add(contact);
                             Collections.reverse(contactList);
-                            Log.d("CALL INFO:", "NAME: " + name + " DATE " + date + " PHOTO " + photo);
+                           // Log.d("CALL INFO:", "NAME: " + name + " DATE " + date + " PHOTO " + photo);
                         }
                     }
                 }
