@@ -150,9 +150,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        speechRecognizer.startListening(intentRecognizer);
-//        Intent intent = new Intent(this, Calls.class);
-//        startActivity(intent);
+        //speechRecognizer.startListening(intentRecognizer);
+        Intent intent = new Intent(this, SMS.class);
+        startActivity(intent);
+        finish();
     }
 
     public void openApplication(String app)

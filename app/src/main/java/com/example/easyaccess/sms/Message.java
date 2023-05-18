@@ -11,6 +11,7 @@ public class Message {
         this.profileUrl = profileUrl;
         this.type = type;
     }
+    public Message(){}
 
     public int getType() {
         return type;

@@ -13,12 +13,12 @@ import android.provider.ContactsContract;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.telecom.Call;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,12 +45,16 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
     private SpeechRecognizer speechRecognizer;
 
     private Intent intentRecognizer;
-    private ImageView voiceButton;
+    private ImageView voiceButton, searchIcon;
+    private Button testButton;
     private String command;
+
+    private ProgressBar loadingCircle;
+
     private EditText filter;
     private int recyclerPosition = 0;
 
-    private Map<Integer,String> threadIDS = new HashMap<>();
+    private Map<Integer, String> threadIDS = new HashMap<>();
 
     // @Override
 //    public void onResume() {
@@ -65,11 +69,23 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
      */ protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sms);
+
+        loadingCircle = findViewById(R.id.loading_circle);
+        loadingCircle.setVisibility(View.VISIBLE);
+
+        searchIcon = findViewById(R.id.searchIcon);
+        searchIcon.setVisibility(View.GONE);
+
         recyclerView = findViewById(R.id.conversations_recycler);
         voiceButton = findViewById(R.id.sms_voice);
         voiceButton.setOnClickListener(this);
+        voiceButton.setVisibility(View.GONE);
+
+        testButton = findViewById(R.id.testButton);
+        testButton.setOnClickListener(this);
 
         filter = findViewById(R.id.sms_filter);
+        filter.setVisibility(View.GONE);
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -84,15 +100,20 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
 
         } else {
-            Log.d("Contact access permission", "permission is already granted");
-            getConversationIDS();
-            createConversationList();
+            Log.d("SMS access permission", "permission is already granted");
+            new Thread(() -> {
+                getConversationIDS();
+                createConversationList();
+                runOnUiThread(() -> {
+                    adapter.notifyDataSetChanged();
+                    loadingCircle.setVisibility(View.GONE);
+                    filter.setVisibility(View.VISIBLE);
+                    voiceButton.setVisibility(View.VISIBLE);
+                    searchIcon.setVisibility(View.VISIBLE);
+                });
+            }).start();
         }
 
-//        getConversationIDS();
-//        createConversationList();
-        Log.d("LIST COUNT SIZE:", String.valueOf(threadIDS.size()));
-        // getSpecific(threadIDS.get(3));
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
@@ -138,27 +159,46 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
                     Log.d("VOICE COMMAND IN ADD", command);
                     //textView.setText(command);
                     Intent intent;
-                    switch(parts[0]){
-                        case "conversation":
-                            if(parts.length>1){
+                    switch (parts[0]) {
+                        case "conversation": {
+                            if (parts.length > 1) {
                                 boolean found = false;
                                 int id = -1;
-                                String name ="";
-                                for(Map.Entry<Integer,String> entry: threadIDS.entrySet()){
-                                    if(entry.getValue().equals(capitalize(parts[1]))){
+                                String name = "";
+                                for (Map.Entry<Integer, String> entry : threadIDS.entrySet()) {
+                                    if (entry.getValue().equals(capitalize(parts[1]))) {
                                         found = true;
                                         id = entry.getKey();
                                         name = entry.getValue();
                                         break;
                                     }
                                 }
-                                if(found){
+                                if (found) {
                                     intent = new Intent(SMS.this, Chat.class);
-                                    intent.putExtra("id",id);
-                                    intent.putExtra("name",name);
+                                    intent.putExtra("id", id);
+                                    intent.putExtra("name", name);
                                     startActivity(intent);
+                                    finish();
                                 }
                             }
+                        }
+                        case "scroll": {
+                            if (parts.length > 1) {
+                                if (parts[1].equals("down")) {
+                                    recyclerPosition += 3;
+                                } else {
+                                    recyclerPosition -= 3;
+                                    if (recyclerPosition < 0) recyclerPosition = 0;
+                                }
+                                recyclerView.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        recyclerView.smoothScrollToPosition(recyclerPosition);
+                                    }
+                                }, 500);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -184,7 +224,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
                 getConversationIDS();
                 createConversationList();
             } else {
-
                 Toast.makeText(getApplicationContext(), "Read SMS permission is not enabled.", Toast.LENGTH_LONG).show();
                 finish();
             }
@@ -200,15 +239,19 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
     public void getConversationIDS() {
 
         Uri uriSMSURI = Uri.parse("content://mms-sms/conversations/");
-        String[] projection = new String[]{"THREAD_ID","address"};
+        String[] projection = new String[]{"THREAD_ID", "address"};
         Cursor cursor = getContentResolver().query(uriSMSURI, projection, null, null, "date desc");
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 int thread_ID = cursor.getInt(cursor.getColumnIndexOrThrow("THREAD_ID"));
                 String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-                threadIDS.put(thread_ID,address);
+                threadIDS.put(thread_ID, address);
             }
             cursor.close();
+            for (Map.Entry<Integer, String> thread : threadIDS.entrySet()) {
+                String fields[] = getContactFromNumber(thread.getValue());
+                threadIDS.replace(thread.getKey(), fields[0]);
+            }
         }
     }
 
@@ -238,11 +281,10 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
                     smsConversation = new SMSConversation(fields[0], body, fields[1]);
                 } else {
                     smsConversation = new SMSConversation(address, body, null);
-
                 }
-                cursor.close();
                 return smsConversation;
             }
+            cursor.close();
         }
         cursor.close();
         return null;
@@ -250,19 +292,42 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
     public void createConversationList() {
         conversationList.clear();
-        for (Map.Entry<Integer,String> thread: threadIDS.entrySet()) {
+        for (Map.Entry<Integer, String> thread : threadIDS.entrySet()) {
             SMSConversation conversation = getSpecific(thread.getKey());
             if (conversation != null) {
                 conversationList.add(conversation);
-                adapter.notifyDataSetChanged();
+                // adapter.notifyDataSetChanged();
             }
         }
     }
 
     @Override
     public void onClick(View view) {
-        speechRecognizer.startListening(intentRecognizer);
+        if (view.getId() == R.id.testButton) {
+            Intent intent = new Intent(SMS.this, Chat.class);
+            boolean found = false;
+            int id = -1;
+            String name = "";
+            for (Map.Entry<Integer, String> entry : threadIDS.entrySet()) {
+                if (entry.getValue().equals("Mom")) {
+                    found = true;
+                    id = entry.getKey();
+                    name = entry.getValue();
+                    break;
+                }
+            }
+            if (found) {
+                intent = new Intent(SMS.this, Chat.class);
+                intent.putExtra("id", id);
+                intent.putExtra("name", name);
+                startActivity(intent);
+                finish();
+            }
+        } else {
+            speechRecognizer.startListening(intentRecognizer);
+        }
     }
+
 
     private String formatString(String body) {
 
