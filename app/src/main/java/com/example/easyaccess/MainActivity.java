@@ -17,8 +17,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.easyaccess.calls.Calls;
+import com.example.easyaccess.reminders.Frequency;
+import com.example.easyaccess.reminders.Reminder;
+import com.example.easyaccess.reminders.ReminderDatabaseHelper;
 import com.example.easyaccess.sms.SMS;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -29,22 +34,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Intent intentRecognizer;
     private String command;
     private TextView textView;
+    private ReminderDatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ActivityCompat.requestPermissions(this,new String[]{RECORD_AUDIO}, PackageManager.PERMISSION_GRANTED);
+        ActivityCompat.requestPermissions(this, new String[]{RECORD_AUDIO}, PackageManager.PERMISSION_GRANTED);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        textView = findViewById(R.id.textView);
+        textView = findViewById(R.id.textView7);
         button = findViewById(R.id.button);
         button.setOnClickListener(this);
 
 
-
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-       // intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-gr");
+        intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        // intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-gr");
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
 
 
@@ -84,16 +89,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResults(Bundle bundle) {
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                if(matches != null)
-                {
+                if (matches != null) {
                     command = matches.get(0);
                     command = command.toLowerCase(Locale.ROOT);
                     textView.setText(command);
                     Intent intent;
-                    switch(command)
-                    {
-                        case "contact":
-                        {
+                    switch (command) {
+                        case "contact": {
 
                             //open calls activity
                             intent = new Intent(MainActivity.this, Calls.class);
@@ -101,36 +103,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             break;
                         }
-                        case "maps":
-                        {
+                        case "maps": {
                             //open maps activity
                             intent = new Intent();
                             break;
                         }
-                        case "sms":
-                        {
+                        case "sms": {
                             //open sms activity
                             intent = new Intent(MainActivity.this, SMS.class);
                             startActivity(intent);
-                            String test ="";
                             break;
                         }
-                        case "help":
-                        {
+                        case "help": {
                             //prompt help toolbox with text to speech bot??
                             break;
                         }
-                        case "alert":
-                        {
+                        case "alert": {
                             //call emergency contact
                             break;
                         }
-                        case "camera":
-                        {
-                            break;
-                        }
-                        case "settings":
-                            break;
                     }
                 }
 
@@ -149,15 +140,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            String currentDate = LocalDate.now().toString();
+            String currentTime = LocalTime.now().toString().substring(0, 5);
+            databaseHelper = new ReminderDatabaseHelper(getApplicationContext());
+
+            int onceReminders = databaseHelper.countReminders(currentDate,Frequency.ONCE);
+            int monthlyReminders = databaseHelper.countReminders(currentDate.substring(0,5),Frequency.EVERY_MONTH);
+            int dailyReminders = databaseHelper.countReminders(currentDate.substring(8,10),Frequency.EVERY_DAY);
+            int total = onceReminders + monthlyReminders + dailyReminders;
+            ((TextView)findViewById(R.id.total)).setText(String.valueOf(total));
+            ((TextView)findViewById(R.id.monthly)).setText(String.valueOf(monthlyReminders));
+            ((TextView)findViewById(R.id.daily)).setText(String.valueOf(dailyReminders));
+            ((TextView)findViewById(R.id.today)).setText(String.valueOf(onceReminders));
+
+        }
+    }
+
+    private void displayNotifications() {
+
+    }
+
+
+    @Override
     public void onClick(View view) {
         //speechRecognizer.startListening(intentRecognizer);
-        Intent intent = new Intent(this, SMS.class);
+        Intent intent = new Intent(this, Reminder.class);
         startActivity(intent);
         finish();
     }
 
-    public void openApplication(String app)
-    {
+
+    public void openApplication(String app) {
         return;
     }
 }

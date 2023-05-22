@@ -292,12 +292,7 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
         }
         cursor.close();
         chatAdapter.notifyDataSetChanged();
-        recyclerView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                recyclerView.scrollToPosition(messages.size() - 1);
-            }
-        }, 100);
+        recyclerView.scrollToPosition(messages.size() - 1);
     }
 
 
@@ -486,7 +481,6 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
         SmsManager smsManager = SmsManager.getDefault();
         smsManager.sendTextMessage(phoneNumber, null, message, sentPendingIntent, null);
     }
-
 
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
