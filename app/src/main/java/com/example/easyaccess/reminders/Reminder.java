@@ -58,18 +58,20 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // if user has given whole date disable the options for Every day and Every month
                 if (date.getText().toString().length() == 10) {
+                    //whole date, user can only select Once
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
-                } else if (date.getText().toString().length() == 2 && isDayOfMonth(date.getText().toString())) {
-                    findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
-                    findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
-                } else if (date.getText().toString().length() == 2 && isDayOfMonth(date.getText().toString())) {
-                    findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
+                    radioGroup.check(R.id.radioButtonOnce);
+                } else if (date.getText().toString().length() == 5 ) {
+                    //Month and day given, user can only select Each Month
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
+                    radioGroup.check(R.id.radioButtonRepeat);
                 } else {
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
+                    radioGroup.check(R.id.radioButtonOnce);
                 }
             }
 
@@ -79,6 +81,26 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         });
 
         time = findViewById(R.id.reminder_time);
+        time.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if(date.getText().toString().isEmpty() && !time.getText().toString().isEmpty()){
+                    findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
+                    radioGroup.check(R.id.radioButtonEveryday);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
         description = findViewById(R.id.reminder_description);
         radioGroup = findViewById(R.id.radioGroup);
         radioGroup.check(R.id.radioButtonOnce);
@@ -129,7 +151,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                     //textView.setText(command);
                     Intent intent;
                     switch (parts[0]) {
-                        case "clear": {
+                        case "delete": {
                             if (parts.length > 1) {
                                 switch (parts[1]) {
                                     case "category": {
@@ -150,6 +172,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                                 category.setText("");
                                 time.setText("");
                                 date.setText("");
+                                description.setText("");
                             }
                             break;
                         }
@@ -171,39 +194,63 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             }
                             break;
                         }
-                        case "month":
-                        case "day": {
-                            if (parts.length > 1) {
-                                date.append("-" + format(parts[1]));
+                        case "month":{
+                            if(parts.length > 1 && isMonth(parts[1])){
+                                if(date.getText().toString().isEmpty()){
+                                    date.setText(format(parts[1]));
+                                }
+                                else{
+                                    date.append("-" + format(parts[1]));
+                                }
+                            }
+                            else{
+                                Toast.makeText(getApplicationContext(),"Invalid month!",Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
-                        case "hour":
-                        case "minutes": {
+                        case "day": {
+                            if (parts.length > 1 && isDayOfMonth(parts[1]) && !date.getText().toString().isEmpty()) {
+                                date.append("-" + format(parts[1]));
+                            }
+                            else{
+                                Toast.makeText(getApplicationContext(),"Please provide a month first!",Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        }
+                        case "time": {
                             if (parts.length > 1) {
                                 time.setText(format(parts[1]));
                             }
                             break;
                         }
-                        case "every": {
-                            if (parts.length > 1) {
-                                if (parts[1].equals("day")) {
-                                    radioGroup.check(R.id.radioButtonEveryday);
-                                } else {
-                                    radioGroup.check(R.id.radioButtonRepeat);
-                                }
-                                break;
+                        case "minutes": {
+                            if (parts.length > 1 && !time.getText().toString().isEmpty()) {
+                                time.append(":" + format(parts[1]));
                             }
-
+                            else{
+                                Toast.makeText(getApplicationContext(), "Please provide the hour first!", Toast.LENGTH_SHORT).show();
+                            }
                             break;
                         }
-                        case "once": {
-                            radioGroup.check(R.id.radioButtonOnce);
-                            break;
-                        }
-                        case "save": {
+//                        case "every": {
+//                            if (parts.length > 1) {
+//                                if (parts[1].equals("day")) {
+//                                    radioGroup.check(R.id.radioButtonEveryday);
+//                                } else if {
+//                                    radioGroup.check(R.id.radioButtonRepeat);
+//                                }
+//                                break;
+//                            }
+//
+//                            break;
+//                        }
+//                        case "once": {
+//                            radioGroup.check(R.id.radioButtonOnce);
+//                            break;
+//                        }
+                        case "store": {
                             saveReminder();
-                            finish();
+                            Reminder.super.onBackPressed();
                         }
                     }
                 }
@@ -285,18 +332,18 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
     }
 
     private static boolean isDayOfMonth(String day) {
-        String dayFormat = " ^(?:[1-9]|[12][0-9]|3[01]|0[1-9])$ ";
+        String dayFormat = "(0[1-9]|[12]\\d|3[01])";
         return day.matches(dayFormat);
     }
 
     private static boolean isMonth(String month) {
-        String monthFormat = "^(?:[1-9]|1[0-2])$";
+        String monthFormat = "^(0[1-9]|1[0-2])$";
         return month.matches(monthFormat);
     }
 
     @Override
     public void onClick(View view) {
-        speechRecognizer.stopListening();
+        speechRecognizer.startListening(intentRecognizer);
     }
 
 

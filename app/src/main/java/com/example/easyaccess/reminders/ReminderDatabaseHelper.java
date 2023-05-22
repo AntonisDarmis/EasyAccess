@@ -127,7 +127,7 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         List<ReminderModel> reminderList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        String selection = COLUMN_DATE + " = ? AND " + COLUMN_FREQUENCY + " = ?";
+        String selection = "( " + COLUMN_DATE + " = ? OR " + COLUMN_DATE + "= '' " + " )" + " AND " + COLUMN_FREQUENCY + " = ?";
         String[] selectionArgs = {date, frequency.toString()};
 
         Cursor cursor = db.query(TABLE_REMINDERS, null, selection, selectionArgs, null, null, null);

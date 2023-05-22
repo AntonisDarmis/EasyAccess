@@ -36,6 +36,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView textView;
     private ReminderDatabaseHelper databaseHelper;
 
+    private static final int REQUEST_CODE_NEW_ACTIVITY = 1;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             //open calls activity
                             intent = new Intent(MainActivity.this, Calls.class);
-                            startActivity(intent);
+                            startActivityForResult(intent,REQUEST_CODE_NEW_ACTIVITY);
 
                             break;
                         }
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //speechRecognizer.startListening(intentRecognizer);
         Intent intent = new Intent(this, Reminder.class);
         startActivity(intent);
-        finish();
+
     }
 
 
