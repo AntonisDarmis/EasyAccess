@@ -1,7 +1,9 @@
 package com.example.easyaccess.sms;
 
 public class SMSConversation {
-    private String name, message, photo;
+    private String name, message, photo, date;
+
+    // private int readStatus;
 
     public String getName() {
         return name;
@@ -27,9 +29,28 @@ public class SMSConversation {
         this.photo = photo;
     }
 
-    public SMSConversation(String name, String message, String photo) {
+//    public int getReadStatus() {
+//        return readStatus;
+//    }
+//
+////    public void setReadStatus(int readStatus) {
+////        this.readStatus = readStatus;
+////    }
+//
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public SMSConversation(String name, String message, String photo,String date) {
         this.name = name;
         this.message = message;
         this.photo = photo;
+        //  this.readStatus = readStatus;
+        this.date = date;
+
     }
 }

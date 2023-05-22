@@ -1,8 +1,10 @@
 package com.example.easyaccess.sms;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.provider.Telephony;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +24,7 @@ import java.util.List;
 public class ChatAdapter extends RecyclerView.Adapter {
     private Context mContext;
     private List<Message> messages;
+    private int highlightedItem = -1;
 
 
     public ChatAdapter(Context mContext, List<Message> messages) {
@@ -34,14 +37,11 @@ public class ChatAdapter extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         if (viewType == 1) {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_chat_other, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_other, parent, false);
             return new ReceivedMessageHolder(view);
         } else {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_chat_me, parent, false);
-            return
-                    new SentMessageHolder(view);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_me, parent, false);
+            return new SentMessageHolder(view);
         }
     }
 
@@ -52,7 +52,14 @@ public class ChatAdapter extends RecyclerView.Adapter {
             // Log.d("RECEIVED  MESSAGE TIME: ",message.getTime());
             ((ReceivedMessageHolder) holder).message.setText(message.getMessage());
             ((ReceivedMessageHolder) holder).name.setText(message.getName());
-            if (!(message.getTime().length() == 5)) {
+            if (highlightedItem == position) {
+                // Apply highlighting to the message
+                ((ReceivedMessageHolder) holder).message.setBackgroundColor(mContext.getResources().getColor(R.color.purple_200));
+            } else {
+                // Reset the background color of the message
+                ((ReceivedMessageHolder) holder).message.setBackgroundColor(Color.TRANSPARENT);
+            }
+            if (message.getTime().length() != 5) {
                 //  ((ReceivedMessageHolder) holder).date.setText(message.getTime().substring(0, 10));
                 ((ReceivedMessageHolder) holder).time.setText(message.getTime().substring(11, 16));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -62,19 +69,24 @@ public class ChatAdapter extends RecyclerView.Adapter {
                     } else {
                         ((ReceivedMessageHolder) holder).date.setText(message.getTime().substring(0, 10));
                     }
-                } else {
-                    ((ReceivedMessageHolder) holder).date.setText("");
-                    ((ReceivedMessageHolder) holder).time.setText(message.getTime());
                 }
+            } else {
+                ((ReceivedMessageHolder) holder).date.setText("");
+                ((ReceivedMessageHolder) holder).time.setText(message.getTime());
             }
-//            if(message.getProfileUrl()!=null){
-//                Picasso.get().load(message.getProfileUrl()).into(((ReceivedMessageHolder)holder).profileImage);
-//            }
-//            else{
-//                ((ReceivedMessageHolder)holder).profileImage.setImageResource(R.drawable.avatar);
-//            }
+            if (message.getProfileUrl() != null) {
+                Picasso.get().load(message.getProfileUrl()).into(((ReceivedMessageHolder) holder).profileImage);
+            }
+
         } else {
             ((SentMessageHolder) holder).message.setText(message.getMessage());
+            if (highlightedItem == position) {
+                // Apply highlighting to the message
+                ((SentMessageHolder) holder).message.setBackgroundColor(mContext.getResources().getColor(R.color.purple_200));
+            } else {
+                // Reset the background color of the message
+                ((SentMessageHolder) holder).message.setBackgroundColor(Color.TRANSPARENT);
+            }
             if (!(message.getTime().length() == 5)) {
                 ((SentMessageHolder) holder).time.setText(message.getTime().substring(10, 16));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -90,6 +102,13 @@ public class ChatAdapter extends RecyclerView.Adapter {
                 ((SentMessageHolder) holder).time.setText(message.getTime());
             }
         }
+//        if (highlightedItem == position) {
+//            // Apply highlighting to the item
+//            holder.itemView.setBackgroundColor(mContext.getResources().getColor(R.color.purple_200));
+//        } else {
+//            // Reset the background color of the item
+//            holder.itemView.setBackgroundColor(Color.TRANSPARENT);
+//        }
     }
 
     @Override
@@ -131,7 +150,25 @@ public class ChatAdapter extends RecyclerView.Adapter {
             date = (TextView) itemView.findViewById(R.id.text_gchat_date_me);
             time = (TextView) itemView.findViewById(R.id.text_gchat_timestamp_me);
         }
-
-
     }
+
+
+
+    public void setHighlightedItem(int position) {
+        int previousHighlightedItem = highlightedItem;
+        highlightedItem = position;
+        if (previousHighlightedItem != -1) {
+            notifyItemChanged(previousHighlightedItem);
+        }
+        notifyItemChanged(position);
+    }
+
+    public void clearHighlightedItem() {
+        int previousHighlightedItem = highlightedItem;
+        highlightedItem = -1;
+        if (previousHighlightedItem != -1) {
+            notifyItemChanged(previousHighlightedItem);
+        }
+    }
+
 }

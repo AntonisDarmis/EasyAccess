@@ -1,6 +1,7 @@
 package com.example.easyaccess.sms;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,9 @@ public class ConversationsAdapter extends RecyclerView.Adapter<ConversationsAdap
         SMSConversation conversation = conversationList.get(position);
         holder.name_contact.setText(conversation.getName());
         holder.last_message.setText(conversation.getMessage());
+//        if(conversation.getReadStatus() != 1){
+//            holder.last_message.setTypeface(null, Typeface.BOLD);
+//        }
         if (conversation.getPhoto() != null) {
             Picasso.get().load(conversation.getPhoto()).into(holder.img_contact);
         } else {
