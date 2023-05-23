@@ -57,17 +57,23 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // if user has given whole date disable the options for Every day and Every month
-                if (date.getText().toString().length() == 10) {
+                if (date.getText().toString().length() >=6 && date.getText().toString().length() <= 10) {
                     //whole date, user can only select Once
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                     radioGroup.check(R.id.radioButtonOnce);
-                } else if (date.getText().toString().length() == 5 ) {
+                } else if (date.getText().toString().length() == 5) {
                     //Month and day given, user can only select Each Month
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
                     radioGroup.check(R.id.radioButtonRepeat);
-                } else {
+                } else if(date.getText().toString().length() == 4){
+                    findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
+                }
+                else {
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
@@ -89,7 +95,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(date.getText().toString().isEmpty() && !time.getText().toString().isEmpty()){
+                if (date.getText().toString().isEmpty() && !time.getText().toString().isEmpty()) {
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
                     radioGroup.check(R.id.radioButtonEveryday);
@@ -194,26 +200,23 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             }
                             break;
                         }
-                        case "month":{
-                            if(parts.length > 1 && isMonth(parts[1])){
-                                if(date.getText().toString().isEmpty()){
+                        case "month": {
+                            if (parts.length > 1 && isMonth(parts[1])) {
+                                if (date.getText().toString().isEmpty()) {
                                     date.setText(format(parts[1]));
-                                }
-                                else{
+                                } else {
                                     date.append("-" + format(parts[1]));
                                 }
-                            }
-                            else{
-                                Toast.makeText(getApplicationContext(),"Invalid month!",Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Invalid month!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
                         case "day": {
                             if (parts.length > 1 && isDayOfMonth(parts[1]) && !date.getText().toString().isEmpty()) {
                                 date.append("-" + format(parts[1]));
-                            }
-                            else{
-                                Toast.makeText(getApplicationContext(),"Please provide a month first!",Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Please provide a month first!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
@@ -226,31 +229,19 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                         case "minutes": {
                             if (parts.length > 1 && !time.getText().toString().isEmpty()) {
                                 time.append(":" + format(parts[1]));
-                            }
-                            else{
+                            } else {
                                 Toast.makeText(getApplicationContext(), "Please provide the hour first!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
-//                        case "every": {
-//                            if (parts.length > 1) {
-//                                if (parts[1].equals("day")) {
-//                                    radioGroup.check(R.id.radioButtonEveryday);
-//                                } else if {
-//                                    radioGroup.check(R.id.radioButtonRepeat);
-//                                }
-//                                break;
-//                            }
-//
-//                            break;
-//                        }
-//                        case "once": {
-//                            radioGroup.check(R.id.radioButtonOnce);
-//                            break;
-//                        }
                         case "store": {
-                            saveReminder();
-                            Reminder.super.onBackPressed();
+                            if (category.getText().toString().isEmpty() || date.getText().toString().isEmpty() || time.getText().toString().isEmpty()) {
+                                Toast.makeText(getApplicationContext(), "Please provide an input for all the fields", Toast.LENGTH_SHORT).show();
+                            } else {
+                                saveReminder();
+                                Reminder.super.onBackPressed();
+                            }
+                            break;
                         }
                     }
                 }
@@ -284,20 +275,13 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
     }
 
     private void saveReminder() {
-        //check if fields are not empty
-        if (category.getText().toString().isEmpty() || category.getText().toString().length() == 0
-                || time.getText().toString().isEmpty() || time.getText().toString().length() == 0
-                || !(time.getText().toString().matches("([01]?[0-9]|2[0-3]):[0-5][0-9]"))) {
-            Toast.makeText(getApplicationContext(), "Please provide an input and a correct format for all the fields", Toast.LENGTH_SHORT).show();
-        }
-
         //perform save operation logic
         // get selected radio button from radioGroup
         int selectedId = radioGroup.getCheckedRadioButtonId();
         // find the radiobutton by returned id
         RadioButton selectedRadioButton = (RadioButton) findViewById(selectedId);
         Frequency frequency;
-        if (selectedRadioButton.getText().toString().equals("Repeat")) {
+        if (selectedRadioButton.getText().toString().equals("Every month")) {
             frequency = Frequency.EVERY_MONTH;
         } else if (selectedRadioButton.getText().toString().equals("Once")) {
             frequency = Frequency.ONCE;
@@ -305,13 +289,19 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             frequency = Frequency.EVERY_DAY;
         }
         //if date is empty and the user tries to save a reminder with option "ONCE" or user didnt provide the complete date do not proceed
-        if ((!(date.getText().toString().matches("\\d{4}-\\d{2}-\\d{2}")) || date.getText().toString().isEmpty() || date.getText().toString().length() == 0)
-                && frequency.equals(Frequency.ONCE)) {
-            Toast.makeText(getApplicationContext(), "Please provide a correct date!", Toast.LENGTH_SHORT).show();
+        if (frequency.equals(Frequency.ONCE) && date.getText().toString().length() != 10) {
+            Toast.makeText(getApplicationContext(), "Please provide a complete date!", Toast.LENGTH_SHORT).show();
+            return;
         }
 
         if (date.getText().toString().length() == 2 && !(isDayOfMonth(date.getText().toString()))) {
             Toast.makeText(getApplicationContext(), "Please provide a correct day of month", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!in24HourFormat(time.getText().toString())){
+            Toast.makeText(getApplicationContext(),"Incorrect time provided!",Toast.LENGTH_SHORT).show();
+            return;
         }
 
 
@@ -331,6 +321,13 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         databaseHelper.close();
     }
 
+
+
+    private static boolean in24HourFormat(String time) {
+        String timeFormat = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$";
+        return time.matches(timeFormat);
+    }
+
     private static boolean isDayOfMonth(String day) {
         String dayFormat = "(0[1-9]|[12]\\d|3[01])";
         return day.matches(dayFormat);
@@ -343,7 +340,9 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View view) {
-        speechRecognizer.startListening(intentRecognizer);
+        saveReminder();
+        Reminder.super.onBackPressed();
+        //speechRecognizer.startListening(intentRecognizer);
     }
 
 

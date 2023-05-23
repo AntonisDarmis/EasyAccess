@@ -6,9 +6,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -83,6 +88,7 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
                 reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndex(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
 
                 reminderList.add(reminder);
+                Log.d("REMINDER", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
             } while (cursor.moveToNext());
 
             cursor.close();
@@ -93,12 +99,12 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         return reminderList;
     }
 
-    public List<ReminderModel> getRemindersByDateAndFrequency(String date, Frequency frequency) {
+    public List<ReminderModel> getRemindersByDate(String date) {
         List<ReminderModel> reminderList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        String selection = COLUMN_DATE + " = ? AND " + COLUMN_FREQUENCY + " = ?";
-        String[] selectionArgs = {date, frequency.toString()};
+        String selection = "(" + COLUMN_DATE + " = ? OR " + COLUMN_DATE + " = ? ) AND " + "(" + COLUMN_FREQUENCY + " = 'ONCE' OR " + COLUMN_FREQUENCY + " = 'EVERY_MONTH')";
+        String[] selectionArgs = {date, date.substring(5)};
 
         Cursor cursor = db.query(TABLE_REMINDERS, null, selection, selectionArgs, null, null, null);
 
@@ -111,7 +117,7 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
                 reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
                 reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
                 reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
-
+                Log.d("REMINDER BY DATE", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
                 reminderList.add(reminder);
             } while (cursor.moveToNext());
 
@@ -123,22 +129,107 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         return reminderList;
     }
 
-    public int countReminders(String date,Frequency frequency) {
+    public List<ReminderModel> getEveryDayReminders() {
         List<ReminderModel> reminderList = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        String selection = "( " + COLUMN_DATE + " = ? OR " + COLUMN_DATE + "= '' " + " )" + " AND " + COLUMN_FREQUENCY + " = ?";
-        String[] selectionArgs = {date, frequency.toString()};
-
-        Cursor cursor = db.query(TABLE_REMINDERS, null, selection, selectionArgs, null, null, null);
-        int count = 0;
+        String selection = COLUMN_FREQUENCY + " = 'EVERY_DAY'";
+        Cursor cursor = db.query(TABLE_REMINDERS, null, selection, null, null, null, null);
         if (cursor != null) {
-            count = cursor.getCount();
+            while (cursor.moveToNext()) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    String currentTime = LocalTime.now().toString().substring(0, 5);
+                    LocalTime current = LocalTime.parse(currentTime);
+                    LocalTime reminderTime = LocalTime.parse(cursor.getString(cursor.getColumnIndexOrThrow("time")));
+                    ;
+                    int comparison = current.compareTo(reminderTime);
+                    if (comparison < 0) {
+                        ReminderModel reminder = new ReminderModel();
+                        reminder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+                        reminder.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
+                        reminder.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+                        reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
+                        reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
+                        reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
+                        Log.d("REMINDER DAILY", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
+                        reminderList.add(reminder);
+
+                    }
+                }
+            }
+        }
+        return reminderList;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public List<ReminderModel> upcomingReminders() {
+        //retrieve reminders whose date is after the current date
+        List<ReminderModel> reminderList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selection = COLUMN_DATE + " > ?";
+        String[] selectionArgs = {LocalDate.now().toString()};
+        Cursor cursor = db.query(TABLE_REMINDERS, null, selection, selectionArgs, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                ReminderModel reminder = new ReminderModel();
+                reminder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+                reminder.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
+                reminder.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+                reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
+                reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
+                reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
+
+                reminderList.add(reminder);
+                Log.d("UPCOMING REMINDER", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
+            } while (cursor.moveToNext());
+
             cursor.close();
         }
 
         db.close();
 
-        return count;
+        return reminderList;
+    }
+
+    public List<ReminderModel> getMonthlyAndEveryDayReminders() {
+        List<ReminderModel> reminders = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selection = "frequency = 'EVERY_MONTH' OR frequency = 'EVERY_DAY'";
+        Cursor cursor = db.query(TABLE_REMINDERS, null, selection, null, null, null, null);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                ReminderModel reminder = new ReminderModel();
+                reminder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+                reminder.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
+                reminder.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+                reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
+                reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
+                reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
+
+                reminders.add(reminder);
+            }
+            cursor.close();
+        }
+        db.close();
+        return reminders;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void deleteExpired() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Get the current date in the format "yyyy-MM-dd"
+        String currentDate = LocalDate.now().toString();
+
+        // Construct the selection query to delete expired reminders
+        String selection = "(" + COLUMN_DATE + " < ? OR (" + COLUMN_DATE + " = ? AND " + COLUMN_TIME + " < ? )) AND frequency = 'ONCE'";
+        String[] selectionArgs = {currentDate, currentDate, LocalTime.now().toString()};
+
+        // Perform the delete operation
+        int rowsDeleted = db.delete(TABLE_REMINDERS, selection, selectionArgs);
+        Log.d("DELETE EXPIRED", "Deleted " + rowsDeleted + " expired reminders");
+
+        db.close();
     }
 }
+
