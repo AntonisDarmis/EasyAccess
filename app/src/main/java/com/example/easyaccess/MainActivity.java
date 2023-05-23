@@ -26,6 +26,7 @@ import com.example.easyaccess.reminders.Reminder;
 import com.example.easyaccess.reminders.ReminderAdapter;
 import com.example.easyaccess.reminders.ReminderDatabaseHelper;
 import com.example.easyaccess.reminders.ReminderModel;
+import com.example.easyaccess.reminders.Upcoming;
 import com.example.easyaccess.sms.SMS;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private SpeechRecognizer speechRecognizer;
-    private Button button;
+    private Button button1, button2, button3;
     private Intent intentRecognizer;
     private String command;
     private TextView textView;
@@ -69,8 +70,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         voiceButton = findViewById(R.id.main_voice);
         voiceButton.setOnClickListener(this);
 
-        button = findViewById(R.id.button);
-        button.setOnClickListener(this);
+        button1 = findViewById(R.id.button);
+        button1.setOnClickListener(this);
+
+        button2 = findViewById(R.id.button2);
+        button2.setOnClickListener(this);
+
+        button3 = findViewById(R.id.button3);
+        button3.setOnClickListener(this);
 
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -170,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String currentTime = LocalTime.now().toString().substring(0, 5);
             databaseHelper = new ReminderDatabaseHelper(getApplicationContext());
             databaseHelper.deleteExpired();
-            databaseHelper.getAllReminders();
+
             List<ReminderModel> onceAndMonthlyReminders = databaseHelper.getRemindersByDate(currentDate);
             List<ReminderModel> dailyReminders = databaseHelper.getEveryDayReminders();
             reminders.clear();
@@ -199,18 +206,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         //speechRecognizer.startListening(intentRecognizer);
-       switch(view.getId()){
-           case R.id.button:{
-               Intent intent = new Intent(this, Reminder.class);
-               startActivity(intent);
-               break;
-           }
-           case R.id.main_voice:{
-               Intent intent = new Intent(this,AllReminders.class);
-               startActivity(intent);
-               break;
-           }
-       }
+        switch (view.getId()) {
+            case R.id.button: {
+                Intent intent = new Intent(this, Reminder.class);
+                startActivity(intent);
+                break;
+            }
+//           case R.id.main_voice:{
+//               Intent intent = new Intent(this,AllReminders.class);
+//               startActivity(intent);
+//               break;
+//           }
+            case R.id.button2: {
+                Intent intent = new Intent(this, Upcoming.class);
+                startActivity(intent);
+                break;
+            }
+            case R.id.button3: {
+                Intent intent = new Intent(this, AllReminders.class);
+                startActivity(intent);
+                break;
+            }
+        }
     }
 
 

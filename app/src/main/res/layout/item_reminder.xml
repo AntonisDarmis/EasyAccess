@@ -2,12 +2,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/rounded_border"
     android:orientation="vertical"
     android:padding="16dp">
 
     <ImageView
         android:id="@+id/reminderImage"
-        android:layout_width="20dp"
+        android:layout_width="24dp"
         android:layout_height="23dp"
         app:srcCompat="@drawable/bell" />
 
@@ -15,7 +16,8 @@
         android:id="@+id/reminderCategory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:textSize="16sp"
         android:textStyle="bold|italic" />
 
     <TextView
@@ -23,6 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:textColor="#424040"
         android:textSize="16sp" />
 
     <TextView
@@ -30,7 +33,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:textColor="@color/black"
         android:textSize="14sp"
-        android:textColor="@android:color/darker_gray" />
+        android:textStyle="bold|italic" />
 
 </LinearLayout>

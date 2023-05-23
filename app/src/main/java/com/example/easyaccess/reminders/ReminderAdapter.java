@@ -34,8 +34,17 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         ReminderModel reminder = reminders.get(position);
         //get and set logic for holder
         holder.reminderCategory.setText(reminder.getCategory() + " (ID:" + reminder.getId() + ")");
-        holder.reminderDate.setText(reminder.getTime());
-        holder.reminderDescription.setText(reminder.getDescription());
+        if(reminder.getDescription().length() == 0) {
+            holder.reminderDescription.setText("No description given.");
+        }
+        else{
+            holder.reminderDescription.setText(reminder.getDescription());
+        }
+        if (reminder.getDate().length() == 10 || reminder.getDate().length() == 5) {
+            holder.reminderDate.setText(reminder.getDate() + " " + reminder.getTime());
+        } else {
+            holder.reminderDate.setText(reminder.getTime());
+        }
     }
 
     @Override

@@ -21,6 +21,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EasyAccess"
         tools:targetApi="31">
+        <activity
+            android:name=".reminders.Upcoming"
+            android:exported="false" />
+
         <receiver
             android:name=".sms.SmsReceiver"
             android:enabled="true"

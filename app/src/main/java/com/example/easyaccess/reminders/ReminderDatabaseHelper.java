@@ -99,6 +99,7 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         return reminderList;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public List<ReminderModel> getRemindersByDate(String date) {
         List<ReminderModel> reminderList = new ArrayList<>();
 
@@ -110,15 +111,21 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                ReminderModel reminder = new ReminderModel();
-                reminder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
-                reminder.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
-                reminder.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
-                reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
-                reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
-                reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
-                Log.d("REMINDER BY DATE", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
-                reminderList.add(reminder);
+                String currentTime = LocalTime.now().toString().substring(0, 5);
+                LocalTime current = LocalTime.parse(currentTime);
+                LocalTime reminderTime = LocalTime.parse(cursor.getString(cursor.getColumnIndexOrThrow("time")));
+                int comparison = current.compareTo(reminderTime);
+                if(comparison < 0) {
+                    ReminderModel reminder = new ReminderModel();
+                    reminder.setId(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID)));
+                    reminder.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
+                    reminder.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+                    reminder.setTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)));
+                    reminder.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)));
+                    reminder.setFrequency(Frequency.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FREQUENCY)).toUpperCase(Locale.ROOT)));
+                    Log.d("REMINDER BY DATE", "ID:" + reminder.getId() + " DATE:" + reminder.getDate() + " TIME:" + reminder.getTime() + " FREQUENCY:" + reminder.getFrequency().toString());
+                    reminderList.add(reminder);
+                }
             } while (cursor.moveToNext());
 
             cursor.close();
@@ -141,7 +148,6 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
                     String currentTime = LocalTime.now().toString().substring(0, 5);
                     LocalTime current = LocalTime.parse(currentTime);
                     LocalTime reminderTime = LocalTime.parse(cursor.getString(cursor.getColumnIndexOrThrow("time")));
-                    ;
                     int comparison = current.compareTo(reminderTime);
                     if (comparison < 0) {
                         ReminderModel reminder = new ReminderModel();
@@ -229,6 +235,12 @@ public class ReminderDatabaseHelper extends SQLiteOpenHelper {
         int rowsDeleted = db.delete(TABLE_REMINDERS, selection, selectionArgs);
         Log.d("DELETE EXPIRED", "Deleted " + rowsDeleted + " expired reminders");
 
+        db.close();
+    }
+
+    public void deleteAllReminders() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_REMINDERS, null, null);
         db.close();
     }
 }

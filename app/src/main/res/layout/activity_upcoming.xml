@@ -7,7 +7,7 @@
     tools:context=".reminders.Upcoming">
 
     <ImageView
-        android:id="@+id/all_voice"
+        android:id="@+id/upcoming_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
         android:clickable="true"
@@ -25,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="serif-monospace"
-        android:text="Edit/Delete reminders"
+        android:text="Upcoming reminders"
         android:textColor="@color/black"
         android:textSize="26sp"
         android:textStyle="bold"
@@ -37,9 +37,9 @@
         app:layout_constraintVertical_bias="0.027" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/allRemindersRecycler"
-        android:layout_width="387dp"
-        android:layout_height="365dp"
+        android:id="@+id/upcomingRecycler"
+        android:layout_width="395dp"
+        android:layout_height="381dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
