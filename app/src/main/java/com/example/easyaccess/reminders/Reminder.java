@@ -39,6 +39,11 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
     private String command;
 
+    private String callingActivity;
+
+    private long reminderID;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,23 +62,26 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 // if user has given whole date disable the options for Every day and Every month
-                if (date.getText().toString().length() >=6 && date.getText().toString().length() <= 10) {
+                if (date.getText().toString().length() >= 6 && date.getText().toString().length() <= 10) {
                     //whole date, user can only select Once
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                     radioGroup.check(R.id.radioButtonOnce);
-                } else if (date.getText().toString().length() == 5) {
+                } else if (date.getText().toString().length() == 2) {
                     //Month and day given, user can only select Each Month
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
                     radioGroup.check(R.id.radioButtonRepeat);
-                } else if(date.getText().toString().length() == 4){
+                } else if (date.getText().toString().length() == 4) {
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.GONE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
-                }
-                else {
+                } else if (time.getText().length() != 0 && date.getText().length() == 0) {
+                    findViewById(R.id.radioButtonOnce).setVisibility(View.GONE);
+                    findViewById(R.id.radioButtonRepeat).setVisibility(View.GONE);
+                    radioGroup.check(R.id.radioButtonEveryday);
+                } else {
                     findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                     findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
@@ -115,6 +123,25 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         // intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-gr");
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        //If the activity is being called to edit a reminder, pre fill all the fields
+        Intent intent = getIntent();
+        String activity = intent.getExtras().getString("callingActivity");
+        callingActivity = activity;
+        if (activity.equals("AllReminders")) {
+            ReminderModel reminder = (ReminderModel) intent.getSerializableExtra("reminderModel");
+            reminderID = reminder.getId();
+            category.setText(reminder.getCategory());
+            description.setText(reminder.getDescription());
+            date.setText(reminder.getDate());
+            time.setText(reminder.getTime());
+            if (reminder.getFrequency().toString().equals("ONCE")) {
+                radioGroup.check(R.id.radioButtonOnce);
+            } else if (reminder.getFrequency().toString().equals("EVERY_MONTH")) {
+                radioGroup.check(R.id.radioButtonRepeat);
+            } else {
+                radioGroup.check(R.id.radioButtonEveryday);
+            }
+        }
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
             public void onReadyForSpeech(Bundle bundle) {
@@ -235,13 +262,19 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             break;
                         }
                         case "store": {
-                            if (category.getText().toString().isEmpty() || date.getText().toString().isEmpty() || time.getText().toString().isEmpty()) {
-                                Toast.makeText(getApplicationContext(), "Please provide an input for all the fields", Toast.LENGTH_SHORT).show();
+                            if (callingActivity.equals("Main")) {
+                                if (category.getText().toString().isEmpty() || date.getText().toString().isEmpty() || time.getText().toString().isEmpty()) {
+                                    Toast.makeText(getApplicationContext(), "Please provide an input for all the fields", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    saveReminder();
+                                    Reminder.super.onBackPressed();
+                                }
+                                break;
                             } else {
                                 saveReminder();
                                 Reminder.super.onBackPressed();
+                                break;
                             }
-                            break;
                         }
                     }
                 }
@@ -257,6 +290,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
             }
         });
+
     }
 
     private static final String capitalize(String str) {
@@ -299,8 +333,8 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             return;
         }
 
-        if (!in24HourFormat(time.getText().toString())){
-            Toast.makeText(getApplicationContext(),"Incorrect time provided!",Toast.LENGTH_SHORT).show();
+        if (!in24HourFormat(time.getText().toString())) {
+            Toast.makeText(getApplicationContext(), "Incorrect time provided!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -312,15 +346,22 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         } else {
             reminder = new ReminderModel(category.getText().toString(), date.getText().toString(), time.getText().toString(), description.getText().toString(), frequency);
         }
-        long successful = databaseHelper.addReminder(reminder);
-        if (successful != -1) {
+
+        long successful;
+        if (callingActivity.equals("Main")) {
+            successful = databaseHelper.addReminder(reminder);
+        } else {
+            successful = databaseHelper.editReminder(reminderID, reminder);
+        }
+        //check if it was successful
+        if (successful > 0) {
             Toast.makeText(getApplicationContext(), "Reminder set successfully!", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
         }
+
         databaseHelper.close();
     }
-
 
 
     private static boolean in24HourFormat(String time) {
@@ -340,9 +381,9 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View view) {
-        saveReminder();
-        Reminder.super.onBackPressed();
-        //speechRecognizer.startListening(intentRecognizer);
+//        saveReminder();
+//        Reminder.super.onBackPressed();
+        speechRecognizer.startListening(intentRecognizer);
     }
 
 

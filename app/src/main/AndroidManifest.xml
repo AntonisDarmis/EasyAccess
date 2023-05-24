@@ -22,7 +22,13 @@
         android:theme="@style/Theme.EasyAccess"
         tools:targetApi="31">
         <activity
-            android:name=".reminders.Upcoming"
+            android:name=".notes.AddNote"
+            android:exported="false" />
+        <activity
+            android:name=".notes.AllNotes"
+            android:exported="false" />
+        <activity
+            android:name=".sms.NewSMS"
             android:exported="false" />
 
         <receiver

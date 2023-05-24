@@ -1,8 +1,10 @@
 package com.example.easyaccess.reminders;
 
-public class ReminderModel {
+import java.io.Serializable;
+
+public class ReminderModel implements Serializable {
     private long id;
-    private String category,date,time,description;
+    private String category, date, time, description;
     private Frequency frequency;
 
     public ReminderModel(long id, String category, String date, String time, String description, Frequency frequency) {
@@ -14,7 +16,8 @@ public class ReminderModel {
         this.frequency = frequency;
     }
 
-    public ReminderModel(){}
+    public ReminderModel() {
+    }
 
     public ReminderModel(String category, String date, String time, String description, Frequency frequency) {
         this.category = category;

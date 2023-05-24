@@ -264,6 +264,20 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
                             adapter.notifyDataSetChanged();
                             break;
                         }
+                        case "new":{
+                            //handle send sms to new conversation logic
+                            if(parts.length > 1 ){
+                                if(parts[1].startsWith("69")){
+                                    intent = new Intent(SMS.this,NewSMS.class);
+                                    intent.putExtra("NUMBER",parts[1]);
+                                    startActivity(intent);
+                                }
+                                else{
+                                    Toast.makeText(getApplicationContext(),"Invalid phone number",Toast.LENGTH_SHORT);
+                                }
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -501,6 +515,21 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
     protected void onResume() {
         super.onResume();
         registerSmsReceiver();
+        new Thread(() -> {
+            conversationList.clear();
+            conversationListFull.clear();
+            getConversationIDS();
+            createConversationList();
+            conversationListFull.addAll(conversationList);
+            runOnUiThread(() -> {
+                adapter.notifyDataSetChanged();
+                loadingCircle.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                filter.setVisibility(View.VISIBLE);
+                voiceButton.setVisibility(View.VISIBLE);
+                searchIcon.setVisibility(View.VISIBLE);
+            });
+        }).start();
     }
 
     @Override
@@ -516,7 +545,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
     private void unregisterSmsReceiver() {
         unregisterReceiver(smsReceiver);
     }
-
 
 
 //    private int getKeyFromContactName(String name){

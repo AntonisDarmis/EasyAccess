@@ -1,22 +1,33 @@
 package com.example.easyaccess;
 
+import static android.Manifest.permission.CALL_PHONE;
+import static android.Manifest.permission.INTERNET;
+import static android.Manifest.permission.READ_CALL_LOG;
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.READ_SMS;
+import static android.Manifest.permission.RECEIVE_SMS;
 import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.SEND_SMS;
+import static android.Manifest.permission.WRITE_CONTACTS;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,7 +37,7 @@ import com.example.easyaccess.reminders.Reminder;
 import com.example.easyaccess.reminders.ReminderAdapter;
 import com.example.easyaccess.reminders.ReminderDatabaseHelper;
 import com.example.easyaccess.reminders.ReminderModel;
-import com.example.easyaccess.reminders.Upcoming;
+import com.example.easyaccess.sms.NewSMS;
 import com.example.easyaccess.sms.SMS;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -35,10 +46,20 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    String[] permissions = {
+            RECORD_AUDIO,
+            INTERNET,
+            READ_CONTACTS,
+            WRITE_CONTACTS,
+            CALL_PHONE,
+            READ_SMS,
+            SEND_SMS,
+            RECEIVE_SMS,
+            READ_CALL_LOG};
+
 
     private SpeechRecognizer speechRecognizer;
     private Button button1, button2, button3;
@@ -55,12 +76,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private List<ReminderModel> reminders = new ArrayList<>();
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ActivityCompat.requestPermissions(this, new String[]{RECORD_AUDIO}, PackageManager.PERMISSION_GRANTED);
+        // Check if the permissions are already granted
+        if (arePermissionsGranted()) {
+            // Permissions are already granted
+            // Proceed with your logic here
+            // ...
+        } else {
+            // Request permissions at runtime
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+        }
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         adapter = new ReminderAdapter(this, reminders);
         recyclerView = findViewById(R.id.reminderRecycler);
@@ -180,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             List<ReminderModel> onceAndMonthlyReminders = databaseHelper.getRemindersByDate(currentDate);
             List<ReminderModel> dailyReminders = databaseHelper.getEveryDayReminders();
+            databaseHelper.getAllReminders();
             reminders.clear();
             reminders.addAll(onceAndMonthlyReminders);
             reminders.addAll(dailyReminders);
@@ -209,16 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.button: {
                 Intent intent = new Intent(this, Reminder.class);
-                startActivity(intent);
-                break;
-            }
-//           case R.id.main_voice:{
-//               Intent intent = new Intent(this,AllReminders.class);
-//               startActivity(intent);
-//               break;
-//           }
-            case R.id.button2: {
-                Intent intent = new Intent(this, Upcoming.class);
+                intent.putExtra("callingActivity","Main");
                 startActivity(intent);
                 break;
             }
@@ -226,6 +248,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = new Intent(this, AllReminders.class);
                 startActivity(intent);
                 break;
+            }
+            case R.id.button2:{
+                Intent intent = new Intent(this, NewSMS.class);
+                startActivity(intent);
+            }
+        }
+    }
+    private boolean arePermissionsGranted() {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // Check if all permissions are granted
+            boolean allPermissionsGranted = true;
+            for (int grantResult : grantResults) {
+                if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+            if (!allPermissionsGranted) {
+                Toast.makeText(getApplicationContext(), "Some permissions are not enabled", Toast.LENGTH_SHORT).show();
             }
         }
     }

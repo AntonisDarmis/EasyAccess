@@ -34,14 +34,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.Remind
         ReminderModel reminder = reminders.get(position);
         //get and set logic for holder
         holder.reminderCategory.setText(reminder.getCategory() + " (ID:" + reminder.getId() + ")");
-        if(reminder.getDescription().length() == 0) {
+        if (reminder.getDescription().length() == 0) {
             holder.reminderDescription.setText("No description given.");
-        }
-        else{
+        } else {
             holder.reminderDescription.setText(reminder.getDescription());
         }
-        if (reminder.getDate().length() == 10 || reminder.getDate().length() == 5) {
+        if (reminder.getDate().length() == 10) {
             holder.reminderDate.setText(reminder.getDate() + " " + reminder.getTime());
+        } else if (reminder.getDate().length() == 2) {
+            holder.reminderDate.setText("At every " + reminder.getDate() + " of month: " + reminder.getTime());
         } else {
             holder.reminderDate.setText(reminder.getTime());
         }

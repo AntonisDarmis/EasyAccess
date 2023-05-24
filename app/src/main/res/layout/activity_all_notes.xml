@@ -4,14 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".reminders.Upcoming">
+    tools:context=".notes.AllNotes">
 
     <ImageView
-        android:id="@+id/upcoming_voice"
+        android:id="@+id/note_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
         android:clickable="true"
         android:focusable="true"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.473"
@@ -20,29 +21,14 @@
         app:layout_constraintVertical_bias="0.992"
         app:srcCompat="@drawable/microphone" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="serif-monospace"
-        android:text="Upcoming reminders"
-        android:textColor="@color/black"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.027" />
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/upcomingRecycler"
-        android:layout_width="395dp"
-        android:layout_height="381dp"
+        android:id="@+id/notesRecycler"
+        android:layout_width="394dp"
+        android:layout_height="416dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.256" />
+        app:layout_constraintVertical_bias="0.085" />
 </androidx.constraintlayout.widget.ConstraintLayout>

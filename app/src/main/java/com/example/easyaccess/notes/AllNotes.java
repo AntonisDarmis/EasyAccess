@@ -1,12 +1,11 @@
-package com.example.easyaccess.reminders;
+package com.example.easyaccess.notes;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -14,6 +13,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.easyaccess.R;
 
@@ -21,43 +21,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class Upcoming extends AppCompatActivity implements View.OnClickListener {
-
-    private ImageView voiceButton;
-
+public class AllNotes extends AppCompatActivity implements View.OnClickListener {
     private SpeechRecognizer speechRecognizer;
-
     private Intent intentRecognizer;
-
     private String command;
-
-    private ReminderDatabaseHelper databaseHelper;
-
-    private ReminderAdapter adapter;
-
     private RecyclerView recyclerView;
-    private int recyclerPosition = 0;
-
-
-
-    private List<ReminderModel> reminders = new ArrayList<>();
+    private NoteAdapter adapter;
+    private ImageView voiceButton;
+    private NoteDatabaseHelper noteDatabaseHelper;
+    List<Note> notes = new ArrayList<>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)  {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_upcoming);
-        voiceButton = findViewById(R.id.upcoming_voice);
+        setContentView(R.layout.activity_all_notes);
+        voiceButton = findViewById(R.id.note_voice);
         voiceButton.setOnClickListener(this);
 
-        adapter = new ReminderAdapter(this, reminders);
-        recyclerView = findViewById(R.id.upcomingRecycler);
+        adapter = new NoteAdapter(this, notes);
+        recyclerView = findViewById(R.id.notesRecycler);
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(staggeredGridLayoutManager);
 
+
+        speechRecognizer.startListening(intentRecognizer);
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        // intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-gr");
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -99,29 +90,24 @@ public class Upcoming extends AppCompatActivity implements View.OnClickListener 
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
-                    //textView.setText(command);
                     Intent intent;
-                    switch (command){
+                    switch(parts[0]){
                         case "back":{
                             finish();
                             break;
                         }
-                        case "scroll": {
-                            if (parts.length > 1) {
-                                if (parts[1].equals("down")) {
-                                    recyclerPosition += 3;
-                                } else {
-                                    recyclerPosition -= 3;
-                                    if (recyclerPosition < 0) recyclerPosition = 0;
-                                }
-                                recyclerView.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        recyclerView.smoothScrollToPosition(recyclerPosition);
-                                    }
-                                }, 500);
-                                break;
+                        case "edit":{
+                            //handle edit note logic
+                            if(parts.length > 1){
+                                //implement logic, check if note exists in list
                             }
+                            break;
+                        }
+                        case "delete":{
+                            if (parts.length > 1){
+                                //handle delete logic, if note exists in list
+                            }
+                            break;
                         }
                     }
                 }
@@ -137,22 +123,19 @@ public class Upcoming extends AppCompatActivity implements View.OnClickListener 
 
             }
         });
-
-
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onResume() {
         super.onResume();
-        databaseHelper = new ReminderDatabaseHelper(getApplicationContext());
-        reminders.clear();
-        reminders.addAll(databaseHelper.upcomingReminders());
+        noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
+        notes.clear();
+        notes.addAll(noteDatabaseHelper.getAllNotes());
         adapter.notifyDataSetChanged();
     }
 
     @Override
     public void onClick(View view) {
-        speechRecognizer.startListening(intentRecognizer);
+
     }
 }
