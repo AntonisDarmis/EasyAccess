@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +22,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EasyAccess"
         tools:targetApi="31">
+        <activity
+            android:name=".maps.ChoiceActivity"
+            android:exported="false" />
+        <!--
+             TODO: Before you run your application, you need a Google Maps API key.
+
+             To get one, follow the directions here:
+
+                https://developers.google.com/maps/documentation/android-sdk/get-api-key
+
+             Once you have your API key (it starts with "AIza"), define a new property in your
+             project's local.properties file (e.g. MAPS_API_KEY=Aiza...), and replace the
+             "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
         <activity
             android:name=".notes.AddNote"
             android:exported="false" />
@@ -47,9 +66,6 @@
             android:name=".reminders.AllReminders"
             android:exported="false" />
         <activity
-            android:name=".reminders.Alarm"
-            android:exported="false" />
-        <activity
             android:name=".reminders.Reminder"
             android:exported="false" />
         <activity
@@ -63,9 +79,6 @@
             android:exported="false" />
         <activity
             android:name=".Help"
-            android:exported="false" />
-        <activity
-            android:name=".maps.Maps"
             android:exported="false" />
         <activity
             android:name=".sms.Chat"

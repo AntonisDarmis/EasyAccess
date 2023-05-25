@@ -37,7 +37,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         Note note = notes.get(position);
         holder.title.setText(note.getTitle());
         holder.description.setText(insertNewLineAtFiveWords(note.getDescription()));
-        holder.id.setText(note.getId());
+        holder.id.setText(String.valueOf(note.getId()));
     }
 
     @Override

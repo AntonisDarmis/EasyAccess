@@ -1,5 +1,6 @@
 package com.example.easyaccess;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.CALL_PHONE;
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.READ_CALL_LOG;
@@ -10,7 +11,6 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.SEND_SMS;
 import static android.Manifest.permission.WRITE_CONTACTS;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -32,12 +32,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.easyaccess.calls.Calls;
-import com.example.easyaccess.reminders.AllReminders;
+import com.example.easyaccess.maps.ChoiceActivity;
+import com.example.easyaccess.notes.AddNote;
 import com.example.easyaccess.reminders.Reminder;
 import com.example.easyaccess.reminders.ReminderAdapter;
 import com.example.easyaccess.reminders.ReminderDatabaseHelper;
 import com.example.easyaccess.reminders.ReminderModel;
-import com.example.easyaccess.sms.NewSMS;
 import com.example.easyaccess.sms.SMS;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             READ_SMS,
             SEND_SMS,
             RECEIVE_SMS,
-            READ_CALL_LOG};
+            READ_CALL_LOG,
+            ACCESS_COARSE_LOCATION};
 
 
     private SpeechRecognizer speechRecognizer;
@@ -245,12 +246,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.button3: {
-                Intent intent = new Intent(this, AllReminders.class);
+                Intent intent = new Intent(this, ChoiceActivity.class);
                 startActivity(intent);
                 break;
             }
             case R.id.button2:{
-                Intent intent = new Intent(this, NewSMS.class);
+                Intent intent = new Intent(this, AddNote.class);
+                intent.putExtra("callingActivity","Main");
                 startActivity(intent);
             }
         }

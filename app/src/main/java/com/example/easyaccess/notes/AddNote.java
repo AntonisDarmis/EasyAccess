@@ -1,7 +1,5 @@
 package com.example.easyaccess.notes;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -13,8 +11,9 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.easyaccess.R;
-import com.example.easyaccess.reminders.ReminderModel;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -36,6 +35,14 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
 
     private long noteID;
 
+    private static String capitalize(String str) {
+
+        if (str == null || str.length() == 0) return str;
+
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,14 +56,14 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
         Intent intent = getIntent();
         String activity = intent.getExtras().getString("callingActivity");
         callingActivity = activity;
-        if (activity.equals("AllReminders")) {
+        if (activity.equals("AllNotes")) {
             Note note = (Note) intent.getSerializableExtra("note");
             noteID = note.getId();
             title.setText(note.getTitle());
             description.setText(note.getDescription());
         }
 
-        speechRecognizer.startListening(intentRecognizer);
+        //speechRecognizer.startListening(intentRecognizer);
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
@@ -136,7 +143,7 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "store": {
-                            if (title.getText().toString().isEmpty() || description.getText().toString().isEmpty() || title.getText().toString().length() > 12) {
+                            if ((title.getText().toString().isEmpty() && description.getText().toString().isEmpty()) || title.getText().toString().length() > 12) {
                                 Toast.makeText(getApplicationContext(), "Please provide a correct title and a description ", Toast.LENGTH_SHORT).show();
                             } else {
                                 noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
@@ -174,16 +181,23 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
         });
     }
 
-    private static String capitalize(String str) {
-
-        if (str == null || str.length() == 0) return str;
-
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-
-    }
-
     @Override
     public void onClick(View view) {
+//        noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
+//        long success;
+//        if(description.getText().toString().isEmpty()){
+//            success = noteDatabaseHelper.addNote(new Note(title.getText().toString(),"No description provided"));
+//        }
+//        else{
+//            success = noteDatabaseHelper.addNote(new Note(title.getText().toString(),description.getText().toString()));
+//        }
+//        if(success < 0){
+//            Toast.makeText(getApplicationContext(),"Something went wrong...",Toast.LENGTH_SHORT).show();
+//        }
+//        else{
+//            Toast.makeText(getApplicationContext(),"Added note successfully",Toast.LENGTH_SHORT).show();
+//            finish();
+//        }
         speechRecognizer.startListening(intentRecognizer);
     }
 }

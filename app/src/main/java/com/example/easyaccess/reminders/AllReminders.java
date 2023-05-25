@@ -18,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.easyaccess.R;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -135,8 +134,8 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                                 Optional<ReminderModel> reminder = reminders.stream().findFirst().filter(reminderModel -> reminderModel.getId() == Integer.parseInt(parts[1]));
                                 if (reminder.isPresent()) {
                                     intent = new Intent(AllReminders.this, Reminder.class);
-                                    intent.putExtra("callingActivity","AllReminders");
-                                    intent.putExtra("reminderModel",reminder.get());
+                                    intent.putExtra("callingActivity", "AllReminders");
+                                    intent.putExtra("reminderModel", reminder.get());
                                     startActivity(intent);
 
                                 } else {
@@ -149,21 +148,19 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                         }
                         case "delete": {
                             //handle delete logic -> delete reminder by ID and display custom popup box to ask if user is sure and start recognizer
-                            if(parts.length > 1){
+                            if (parts.length > 1) {
                                 Optional<ReminderModel> reminder = reminders.stream().findFirst().filter(reminderModel -> reminderModel.getId() == Integer.parseInt(parts[1]));
-                                if (reminder.isPresent()){
+                                if (reminder.isPresent()) {
                                     boolean isDeleted = databaseHelper.deleteById(reminder.get().getId());
-                                    if(isDeleted){
+                                    if (isDeleted) {
                                         Toast.makeText(getApplicationContext(), "Deleted reminder successfully", Toast.LENGTH_SHORT).show();
                                         reminders.remove(reminder.get());
                                         adapter.notifyDataSetChanged();
                                         break;
-                                    }
-                                    else{
+                                    } else {
                                         break;
                                     }
-                                }
-                                else{
+                                } else {
                                     Toast.makeText(getApplicationContext(), "No reminder with given id found...", Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -198,10 +195,10 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         Optional<ReminderModel> reminder = reminders.stream().findFirst().filter(reminderModel -> reminderModel.getId() == Integer.parseInt("1"));
-        if(reminder.isPresent()){
-            Intent intent = new Intent(AllReminders.this,Reminder.class);
-            intent.putExtra("callingActivity","AllReminders");
-            intent.putExtra("reminderModel",reminder.get());
+        if (reminder.isPresent()) {
+            Intent intent = new Intent(AllReminders.this, Reminder.class);
+            intent.putExtra("callingActivity", "AllReminders");
+            intent.putExtra("reminderModel", reminder.get());
             startActivity(intent);
         }
         //speechRecognizer.startListening(intentRecognizer);

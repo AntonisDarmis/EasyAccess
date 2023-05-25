@@ -1,10 +1,5 @@
 package com.example.easyaccess.notes;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -15,13 +10,19 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class AllNotes extends AppCompatActivity implements View.OnClickListener {
+    List<Note> notes = new ArrayList<>();
     private SpeechRecognizer speechRecognizer;
     private Intent intentRecognizer;
     private String command;
@@ -29,7 +30,6 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
     private NoteAdapter adapter;
     private ImageView voiceButton;
     private NoteDatabaseHelper noteDatabaseHelper;
-    List<Note> notes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +42,10 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
         recyclerView = findViewById(R.id.notesRecycler);
         recyclerView.setAdapter(adapter);
         recyclerView.setHasFixedSize(true);
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(staggeredGridLayoutManager);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getApplicationContext(), 3);
+        recyclerView.setLayoutManager(gridLayoutManager);
 
 
-        speechRecognizer.startListening(intentRecognizer);
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
@@ -91,21 +90,43 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     Intent intent;
-                    switch(parts[0]){
-                        case "back":{
+                    switch (parts[0]) {
+                        case "back": {
                             finish();
                             break;
                         }
-                        case "edit":{
+                        case "view": {
                             //handle edit note logic
-                            if(parts.length > 1){
+                            if (parts.length > 1) {
                                 //implement logic, check if note exists in list
+                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == Integer.parseInt(parts[1]));
+                                if (note.isPresent()) {
+                                    intent = new Intent(AllNotes.this, AddNote.class);
+                                    intent.putExtra("callingActivity", "AllNotes");
+                                    intent.putExtra("note", note.get());
+                                    startActivity(intent);
+                                    break;
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "No note with given ID found!", Toast.LENGTH_SHORT).show();
+                                }
                             }
                             break;
                         }
-                        case "delete":{
-                            if (parts.length > 1){
+                        case "delete": {
+                            if (parts.length > 1) {
                                 //handle delete logic, if note exists in list
+                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == Integer.parseInt(parts[1]));
+                                if (note.isPresent()) {
+                                    noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
+                                    if (noteDatabaseHelper.deleteNoteById(note.get().getId())) {
+                                        Toast.makeText(getApplicationContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
+                                    }
+                                    noteDatabaseHelper.close();
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "No note with given ID found!", Toast.LENGTH_SHORT).show();
+                                }
                             }
                             break;
                         }
@@ -115,12 +136,10 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
 
             @Override
             public void onPartialResults(Bundle bundle) {
-
             }
 
             @Override
             public void onEvent(int i, Bundle bundle) {
-
             }
         });
     }

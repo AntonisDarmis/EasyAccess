@@ -34,9 +34,9 @@
         android:id="@+id/main_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:background="@drawable/border"
         android:clickable="true"
         android:focusable="true"
+        android:padding="2dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -44,9 +44,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.992"
-        app:srcCompat="@drawable/microphone"
-        android:padding="2dp"
-    />
+        app:srcCompat="@drawable/microphone" />
 
     <TextView
         android:id="@+id/remindersTitle"
