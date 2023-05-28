@@ -4,50 +4,67 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_blue"
     android:padding="4dp"
     tools:context=".calls.Calls">
 
-    <ImageView
+    <androidx.cardview.widget.CardView
         android:id="@+id/calls_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:clickable="true"
-        android:focusable="true"
-
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.992"
-        app:srcCompat="@drawable/microphone" />
+        app:layout_constraintVertical_bias="0.992">
+
+        <ImageView
+            android:id="@+id/call_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/microphone" />
+
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/calls_recycler"
         android:layout_width="391dp"
-        android:layout_height="401dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="470dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
+        app:layout_constraintBottom_toBottomOf="@+id/calls_voice"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.45"
+        app:layout_constraintHorizontal_bias="0.272"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/filter"
-        app:layout_constraintVertical_bias="0.092" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <EditText
         android:id="@+id/filter"
-        android:layout_width="400dp"
-        android:layout_height="46dp"
+        android:layout_width="379dp"
+        android:layout_height="40dp"
+        android:background="@drawable/rounded_background"
         android:clickable="false"
         android:ems="10"
         android:hint='Say "View" and the name of the contact'
         android:inputType="textPersonName"
         android:longClickable="false"
+        android:textColor="@color/black"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.375"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.007" />
 
     <ImageView
         android:id="@+id/imageView"

@@ -21,7 +21,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.easyaccess.Help;
 import com.example.easyaccess.R;
+import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -101,6 +103,7 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
                             input.setText("");
                             break;
                         }
+                        case "buck":
                         case "back": {
                             finish();
                             break;
@@ -117,6 +120,11 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
                                 finish();
                                 break;
                             }
+                        }
+                        case "help":{
+                            intent = new Intent(NewSMS.this, Help.class);
+                            intent.putExtra("callingActivity","NewSMSActivity");
+                            startActivity(intent);
                         }
                     }
                 }

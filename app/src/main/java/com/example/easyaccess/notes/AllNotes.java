@@ -14,7 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.easyaccess.Help;
+import com.example.easyaccess.NumberConverter;
 import com.example.easyaccess.R;
+import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,8 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
     private NoteAdapter adapter;
     private ImageView voiceButton;
     private NoteDatabaseHelper noteDatabaseHelper;
+
+    private int recyclerPosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,8 +103,9 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
                         case "view": {
                             //handle edit note logic
                             if (parts.length > 1) {
+                                long id = NumberConverter.convertWordsToNumber(parts[1]);
                                 //implement logic, check if note exists in list
-                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == Integer.parseInt(parts[1]));
+                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == id);
                                 if (note.isPresent()) {
                                     intent = new Intent(AllNotes.this, AddNote.class);
                                     intent.putExtra("callingActivity", "AllNotes");
@@ -115,20 +121,45 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
                         case "delete": {
                             if (parts.length > 1) {
                                 //handle delete logic, if note exists in list
-                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == Integer.parseInt(parts[1]));
+                                long id = NumberConverter.convertWordsToNumber(parts[1]);
+                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == id);
                                 if (note.isPresent()) {
                                     noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
                                     if (noteDatabaseHelper.deleteNoteById(note.get().getId())) {
                                         Toast.makeText(getApplicationContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
+                                        notes.remove(note.get());
+                                        adapter.notifyDataSetChanged();
                                     } else {
                                         Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
+                                        noteDatabaseHelper.close();
                                     }
-                                    noteDatabaseHelper.close();
                                 } else {
                                     Toast.makeText(getApplicationContext(), "No note with given ID found!", Toast.LENGTH_SHORT).show();
                                 }
                             }
                             break;
+                        }
+                        case "scroll": {
+                            if (parts.length > 1) {
+                                if (parts[1].equals("down")) {
+                                    recyclerPosition += 3;
+                                } else {
+                                    recyclerPosition -= 3;
+                                    if (recyclerPosition < 0) recyclerPosition = 0;
+                                }
+                                recyclerView.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        recyclerView.smoothScrollToPosition(recyclerPosition);
+                                    }
+                                }, 500);
+                                break;
+                            }
+                        }
+                        case "help":{
+                            intent = new Intent(AllNotes.this, Help.class);
+                            intent.putExtra("callingActivity","AllNotesActivity");
+                            startActivity(intent);
                         }
                     }
                 }
@@ -144,6 +175,8 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
         });
     }
 
+
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -155,6 +188,6 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View view) {
-
+        speechRecognizer.startListening(intentRecognizer);
     }
 }

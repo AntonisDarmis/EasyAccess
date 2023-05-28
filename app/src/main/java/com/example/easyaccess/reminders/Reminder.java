@@ -18,7 +18,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.easyaccess.Help;
 import com.example.easyaccess.R;
+import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -134,6 +136,9 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             description.setText(reminder.getDescription());
             date.setText(reminder.getDate());
             time.setText(reminder.getTime());
+            findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
+            findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
+            findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
             if (reminder.getFrequency().toString().equals("ONCE")) {
                 radioGroup.check(R.id.radioButtonOnce);
             } else if (reminder.getFrequency().toString().equals("EVERY_MONTH")) {
@@ -181,7 +186,6 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
-                    //textView.setText(command);
                     Intent intent;
                     switch (parts[0]) {
                         case "delete": {
@@ -195,11 +199,16 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                                         time.setText("");
                                         break;
                                     }
-                                    case "date":
+                                    case "date": {
                                         date.setText("");
                                         findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
                                         findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
+                                        findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                                         break;
+                                    }
+                                    case "description":{
+                                        description.setText("");
+                                    }
                                 }
                             } else {
                                 category.setText("");
@@ -240,10 +249,10 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             break;
                         }
                         case "day": {
-                            if (parts.length > 1 && isDayOfMonth(parts[1]) && !date.getText().toString().isEmpty()) {
+                            if (parts.length > 1 && isDayOfMonth(parts[1]) && date.getText().toString().isEmpty()) {
+                                date.append(format(parts[1]));
+                            } else if (parts.length > 1 && isDayOfMonth(parts[1])) {
                                 date.append("-" + format(parts[1]));
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Please provide a month first!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
@@ -263,18 +272,25 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                         }
                         case "store": {
                             if (callingActivity.equals("Main")) {
-                                if (category.getText().toString().isEmpty() || date.getText().toString().isEmpty() || time.getText().toString().isEmpty()) {
-                                    Toast.makeText(getApplicationContext(), "Please provide an input for all the fields", Toast.LENGTH_SHORT).show();
+                                if (category.getText().toString().isEmpty() && time.getText().toString().isEmpty()) {
+                                    Toast.makeText(getApplicationContext(), "Please input a category and a time at minimum.", Toast.LENGTH_SHORT).show();
                                 } else {
                                     saveReminder();
                                     Reminder.super.onBackPressed();
                                 }
-                                break;
                             } else {
                                 saveReminder();
                                 Reminder.super.onBackPressed();
-                                break;
                             }
+                            break;
+                        }
+                        case "back": {
+                            finish();
+                        }
+                        case "help":{
+                            intent = new Intent(Reminder.this, Help.class);
+                            intent.putExtra("callingActivity","ReminderActivity");
+                            startActivity(intent);
                         }
                     }
                 }
@@ -333,7 +349,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             return;
         }
 
-        if (!in24HourFormat(time.getText().toString())) {
+        if (!in24HourFormat(time.getText().toString()) || time.getText().toString().isEmpty()) {
             Toast.makeText(getApplicationContext(), "Incorrect time provided!", Toast.LENGTH_SHORT).show();
             return;
         }

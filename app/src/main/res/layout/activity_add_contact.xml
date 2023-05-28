@@ -4,30 +4,42 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_blue"
     tools:context=".calls.AddContact">
 
-    <ImageView
-        android:id="@+id/mic"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/addContact_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:clickable="true"
-        android:focusable="true"
-
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.992"
-        app:srcCompat="@drawable/microphone" />
+        app:layout_constraintVertical_bias="0.992">
+
+        <ImageView
+            android:id="@+id/addContact_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/microphone" />
+    </androidx.cardview.widget.CardView>
 
     <ImageView
         android:id="@+id/contact_photo"
-        android:layout_width="217dp"
-        android:layout_height="155dp"
+        android:layout_width="312dp"
+        android:layout_height="151dp"
+        android:background="@drawable/rounded_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.484"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.035"
@@ -35,11 +47,14 @@
 
     <EditText
         android:id="@+id/contact_phone"
-        android:layout_width="217dp"
-        android:layout_height="47dp"
+        android:layout_width="339dp"
+        android:layout_height="48dp"
+        android:background="@drawable/rounded_background"
+        android:clickable="false"
         android:ems="10"
-        android:hint="Insert Contact number"
+        android:hint="Say &quot;number&quot; and provide a number..."
         android:inputType="text"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,13 +63,29 @@
 
     <EditText
         android:id="@+id/contact_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="339dp"
+        android:layout_height="48dp"
+        android:background="@drawable/rounded_background"
+        android:clickable="false"
         android:ems="10"
-        android:hint="Insert Contact name"
+        android:hint="Say &quot;name&quot; and provide a name..."
         android:inputType="text"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toTopOf="@+id/contact_phone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/contact_photo" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="213dp"
+        android:layout_height="21dp"
+        android:text="Say &quot;Image&quot; to select an image..."
+        android:textStyle="bold|italic"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.55"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.027" />
 </androidx.constraintlayout.widget.ConstraintLayout>

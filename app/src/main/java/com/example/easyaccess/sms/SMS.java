@@ -28,8 +28,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.easyaccess.Help;
 import com.example.easyaccess.LeveshteinDistance;
 import com.example.easyaccess.R;
+import com.example.easyaccess.calls.Calls;
 import com.example.easyaccess.calls.Contact;
 
 import java.text.Normalizer;
@@ -45,7 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class SMS extends AppCompatActivity implements View.OnClickListener  {
+public class SMS extends AppCompatActivity implements View.OnClickListener {
 
 
     private RecyclerView recyclerView;
@@ -61,7 +63,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
 
     private Intent intentRecognizer;
     private ImageView voiceButton, searchIcon;
-    private Button testButton;
     private String command;
 
     private ProgressBar loadingCircle;
@@ -74,11 +75,11 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
     private SmsReceiver smsReceiver;
 
 
-
     @Override
     /**
      * Fetches all the conversations when activity is created
-     */ protected void onCreate(Bundle savedInstanceState) {
+     */
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sms);
 
@@ -94,8 +95,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
         voiceButton.setOnClickListener(this);
         voiceButton.setVisibility(View.GONE);
 
-        testButton = findViewById(R.id.testButton);
-        testButton.setOnClickListener(this);
 
         filter = findViewById(R.id.sms_filter);
         filter.setVisibility(View.GONE);
@@ -114,19 +113,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
 
         } else {
             Log.d("SMS access permission", "permission is already granted");
-            new Thread(() -> {
-                getConversationIDS();
-                createConversationList();
-                conversationListFull.addAll(conversationList);
-                runOnUiThread(() -> {
-                    adapter.notifyDataSetChanged();
-                    loadingCircle.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
-                    filter.setVisibility(View.VISIBLE);
-                    voiceButton.setVisibility(View.VISIBLE);
-                    searchIcon.setVisibility(View.VISIBLE);
-                });
-            }).start();
+//
         }
 
         if (ActivityCompat.checkSelfPermission(SMS.this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -134,32 +121,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
 
         }
 
-         smsReceiver = new SmsReceiver(){
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                super.onReceive(context, intent);
-                Toast.makeText(getApplicationContext(), "New message received!", Toast.LENGTH_LONG).show();
-                if (received) {
-                    loadingCircle.setVisibility(View.VISIBLE);
-                    recyclerView.setVisibility(View.GONE);
-                    new Thread(() -> {
-                        getConversationIDS();
-                        createConversationList();
-                        conversationListFull.addAll(conversationList);
-                        runOnUiThread(() -> {
-                            adapter.notifyDataSetChanged();
-                            loadingCircle.setVisibility(View.GONE);
-                            recyclerView.setVisibility(View.VISIBLE);
-                            filter.setVisibility(View.VISIBLE);
-                            voiceButton.setVisibility(View.VISIBLE);
-                            searchIcon.setVisibility(View.VISIBLE);
-                        });
-                    }).start();
-                }
-            }
-        };
-
-        registerSmsReceiver();
 
 
 
@@ -227,7 +188,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
                                     intent.putExtra("id", id);
                                     intent.putExtra("name", name);
                                     startActivity(intent);
-                                    finish();
                                 }
                             }
                         }
@@ -264,19 +224,28 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
                             adapter.notifyDataSetChanged();
                             break;
                         }
-                        case "new":{
+                        case "new": {
                             //handle send sms to new conversation logic
-                            if(parts.length > 1 ){
-                                if(parts[1].startsWith("69")){
-                                    intent = new Intent(SMS.this,NewSMS.class);
-                                    intent.putExtra("NUMBER",parts[1]);
+                            if (parts.length > 1) {
+                                if (parts[1].startsWith("69")) {
+                                    intent = new Intent(SMS.this, NewSMS.class);
+                                    intent.putExtra("NUMBER", parts[1]);
                                     startActivity(intent);
-                                }
-                                else{
-                                    Toast.makeText(getApplicationContext(),"Invalid phone number",Toast.LENGTH_SHORT);
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Invalid phone number", Toast.LENGTH_SHORT);
                                 }
                                 break;
                             }
+                        }
+                        case "buck":
+                        case "back":{
+                            finish();
+                            break;
+                        }
+                        case "help":{
+                            intent = new Intent(SMS.this, Help.class);
+                            intent.putExtra("callingActivity","SMSActivity");
+                            startActivity(intent);
                         }
                     }
                 }
@@ -295,9 +264,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
     }
 
 
-
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -309,8 +275,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
                 Toast.makeText(getApplicationContext(), "Read SMS permission is not enabled.", Toast.LENGTH_LONG).show();
                 finish();
             }
-        }
-        else{
+        } else {
             if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 Toast.makeText(getApplicationContext(), "Receive SMS permission is not enabled.", Toast.LENGTH_LONG).show();
                 finish();
@@ -382,6 +347,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
     }
 
     public void createConversationList() {
+        conversationListFull.clear();
         conversationList.clear();
         SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
         SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -389,7 +355,9 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
         for (Map.Entry<Integer, String> thread : threadIDS.entrySet()) {
             SMSConversation conversation = getSpecific(thread.getKey());
             if (conversation != null) {
-                conversationList.add(conversation);
+                if (conversation.getName() != null && conversation.getMessage() != null && conversation.getDate() != null) {
+                    conversationList.add(conversation);
+                }
             }
         }
 
@@ -397,41 +365,25 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
             try {
                 Date date1 = inputFormat.parse(c1.getDate());
                 Date date2 = inputFormat.parse(c2.getDate());
-                String formattedDate1 = outputFormat.format(date1);
-                String formattedDate2 = outputFormat.format(date2);
-                return formattedDate2.compareTo(formattedDate1);
+
+                if (date1 != null && date2 != null) {
+                    String formattedDate1 = outputFormat.format(date1);
+                    String formattedDate2 = outputFormat.format(date2);
+                    return formattedDate2.compareTo(formattedDate1);
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+
+            // If the dates are null or a ParseException occurred, compare the objects by their natural order
             return 0;
         });
+
     }
 
     @Override
     public void onClick(View view) {
-        if (view.getId() == R.id.testButton) {
-            Intent intent = new Intent(SMS.this, Chat.class);
-            boolean found = false;
-            int id = -1;
-            String name = "";
-            for (Map.Entry<Integer, String> entry : threadIDS.entrySet()) {
-                if (entry.getValue().equals("Mom")) {
-                    found = true;
-                    id = entry.getKey();
-                    name = entry.getValue();
-                    break;
-                }
-            }
-            if (found) {
-                intent = new Intent(SMS.this, Chat.class);
-                intent.putExtra("id", id);
-                intent.putExtra("name", name);
-                startActivity(intent);
-                finish();
-            }
-        } else {
-            speechRecognizer.startListening(intentRecognizer);
-        }
+        speechRecognizer.startListening(intentRecognizer);
     }
 
 
@@ -514,6 +466,31 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
 
     protected void onResume() {
         super.onResume();
+        smsReceiver = new SmsReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                super.onReceive(context, intent);
+                Toast.makeText(getApplicationContext(), "New message received!", Toast.LENGTH_LONG).show();
+                if (received) {
+                    loadingCircle.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
+                    new Thread(() -> {
+                        getConversationIDS();
+                        createConversationList();
+                        conversationListFull.addAll(conversationList);
+                        runOnUiThread(() -> {
+                            adapter.notifyDataSetChanged();
+                            loadingCircle.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                            filter.setVisibility(View.VISIBLE);
+                            voiceButton.setVisibility(View.VISIBLE);
+                            searchIcon.setVisibility(View.VISIBLE);
+                        });
+                    }).start();
+                }
+            }
+        };
+
         registerSmsReceiver();
         new Thread(() -> {
             conversationList.clear();
@@ -537,6 +514,7 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
         super.onPause();
         unregisterSmsReceiver();
     }
+
     private void registerSmsReceiver() {
         IntentFilter intentFilter = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
         registerReceiver(smsReceiver, intentFilter);
@@ -546,83 +524,5 @@ public class SMS extends AppCompatActivity implements View.OnClickListener  {
         unregisterReceiver(smsReceiver);
     }
 
-
-//    private int getKeyFromContactName(String name){
-//        for (Map.Entry<Integer, String> thread : threadIDS.entrySet()) {
-//            if(thread.getValue().equals(name)){
-//                return thread.getKey();
-//            }
-//        }
-//        return -1;
-//    }
-
-//    private List<SMSConversation> searchInConversationsByNameAndMessages(String keyword) {
-//        List<SMSConversation> results = new ArrayList<>();
-//        boolean bodyContains = false;
-//        boolean nameContains = false;
-//        SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
-//        SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-//        ContentResolver cr = getContentResolver();
-//        String[] projection = new String[]{"body", "address", "date"};
-//        Uri uri = Uri.parse("content://mms-sms/conversations/");
-//        Cursor cursor = cr.query(uri, projection, null, null, null);
-//        while (cursor.moveToNext()) {
-//            String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
-//            String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
-//            Long dateReceived = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
-//            if (address != null && !(body.isEmpty())) {
-//                SMSConversation smsConversation;
-//                //check if sender belongs to contacts and get photo, either set default
-//                body = formatString(body);
-//                if (body.toLowerCase().contains(keyword)) {
-//                    Log.d("BODY MATCH:",body + " " + keyword);
-//                    bodyContains = true;
-//                }
-//                String date = millisToDate(dateReceived);
-//                if (address.substring(1).matches("[0-9]+")) {
-//                    String[] fields = getContactFromNumber(address);
-//                    if (wordContains(fields[0], keyword)) {
-//                        nameContains = true;
-//                    }
-//                    Log.d("CONTACT FOUND", fields[0] + " BODY: " + body);
-//                    smsConversation = new SMSConversation(fields[0], body, fields[1], date);
-//                } else {
-//                    if (wordContains(address, keyword)) {
-//                        nameContains = true;
-//                    }
-//                    Log.d("CONTACT FOUND", address + " BODY: " + body);
-//                    smsConversation = new SMSConversation(address, body, null, date);
-//                }
-//                if (nameContains || bodyContains) {
-//                    results.add(smsConversation);
-//                }
-//            }
-//        }
-//        cursor.close();
-//        conversationList.clear();
-//        conversationList.addAll(results);
-//        Collections.sort(conversationList, (c1, c2) -> {
-//            try {
-//                Date date1 = inputFormat.parse(c1.getDate());
-//                Date date2 = inputFormat.parse(c2.getDate());
-//                String formattedDate1 = outputFormat.format(date1);
-//                String formattedDate2 = outputFormat.format(date2);
-//                return formattedDate2.compareTo(formattedDate1);
-//            } catch (ParseException e) {
-//                e.printStackTrace();
-//            }
-//            return 0;
-//        });
-//        adapter.notifyDataSetChanged();
-//        return results;
-//    }
-//
-//    private boolean wordContains(String searchedWord, String keyword) {
-//        if (searchedWord.toLowerCase().contains(keyword) || searchedWord.toLowerCase().equals(stripAccents(keyword))
-//                || LeveshteinDistance.computeLeveshteinDistance(searchedWord.toLowerCase(), keyword) <= 1) {
-//            return true;
-//        }
-//        return false;
-//    }
 }
 

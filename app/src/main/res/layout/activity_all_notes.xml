@@ -7,26 +7,38 @@
     android:background="@color/light_blue"
     tools:context=".notes.AllNotes">
 
-    <ImageView
-        android:id="@+id/note_voice"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/n_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:background="@color/white"
-        android:clickable="true"
-
-        android:focusable="true"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/microphone" />
+        app:layout_constraintVertical_bias="0.992">
+
+        <ImageView
+            android:id="@+id/note_voice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/microphone" />
+    </androidx.cardview.widget.CardView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/notesRecycler"
         android:layout_width="409dp"
         android:layout_height="395dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@android:drawable/dialog_holo_light_frame"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.347"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,6 +49,7 @@
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/rounded_background"
         android:text="All notes"
         android:textColor="@color/black"
         android:textSize="24sp"

@@ -32,7 +32,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.easyaccess.Help;
 import com.example.easyaccess.R;
+import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -230,6 +232,11 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                                 break;
                             }
                             break;
+                        }
+                        case "help":{
+                            intent = new Intent(Chat.this, Help.class);
+                            intent.putExtra("callingActivity","ChatActivity");
+                            startActivity(intent);
                         }
                     }
                 }

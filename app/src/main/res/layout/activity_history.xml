@@ -4,31 +4,45 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_blue"
     tools:context=".calls.History">
 
-    <ImageView
-        android:id="@+id/calls_history"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/h_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:clickable="true"
-        android:focusable="true"
-
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.992"
-        app:srcCompat="@drawable/microphone" />
+        app:layout_constraintVertical_bias="0.992">
+
+        <ImageView
+            android:id="@+id/history_voice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/microphone" />
+    </androidx.cardview.widget.CardView>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/history_recycler"
-        android:layout_width="392dp"
-        android:layout_height="427dp"
+        android:layout_width="394dp"
+        android:layout_height="497dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.022" />
+        app:layout_constraintVertical_bias="0.039" />
 </androidx.constraintlayout.widget.ConstraintLayout>

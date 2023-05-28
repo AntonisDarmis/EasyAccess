@@ -4,29 +4,44 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/light_blue"
     tools:context=".notes.AddNote">
 
-    <ImageView
-        android:id="@+id/addNote_voice"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/ad_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
-        android:clickable="true"
-        android:focusable="true"
-
+        android:layout_margin="16dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.992"
-        app:srcCompat="@drawable/microphone" />
+        app:layout_constraintVertical_bias="0.992">
+
+        <ImageView
+            android:id="@+id/addNote_voice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/rounded_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/microphone" />
+    </androidx.cardview.widget.CardView>
 
     <EditText
         android:id="@+id/notes_title"
         android:layout_width="388dp"
         android:layout_height="45dp"
         android:background="@android:color/holo_orange_light"
+        android:clickable="false"
         android:ems="10"
+        android:enabled="false"
+        android:focusable="auto"
         android:fontFamily="sans-serif"
         android:hint='Say "Title" and start speaking...'
         android:inputType="textPersonName"
@@ -43,6 +58,7 @@
         android:layout_width="384dp"
         android:layout_height="329dp"
         android:background="@android:color/holo_orange_light"
+        android:clickable="false"
         android:ems="10"
         android:gravity="start|top"
         android:hint='Say "Note" and start speaking...'
@@ -80,6 +96,6 @@
         app:layout_constraintHorizontal_bias="0.925"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.717" />
+        app:layout_constraintVertical_bias="0.69" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

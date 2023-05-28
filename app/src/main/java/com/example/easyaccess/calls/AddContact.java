@@ -1,6 +1,7 @@
 package com.example.easyaccess.calls;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -18,12 +19,18 @@ import android.provider.MediaStore;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.easyaccess.DialogFormatter;
+import com.example.easyaccess.Help;
 import com.example.easyaccess.R;
 import com.squareup.picasso.Picasso;
 
@@ -33,6 +40,9 @@ import java.util.Locale;
 
 public class AddContact extends AppCompatActivity implements View.OnClickListener {
 
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
     private static final int IMAGE_PICK_GALLERY_CODE = 100 ;
     private SpeechRecognizer speechRecognizer;
 
@@ -77,7 +87,7 @@ public class AddContact extends AppCompatActivity implements View.OnClickListene
 
 
 
-        voiceButton = findViewById(R.id.mic);
+        voiceButton = findViewById(R.id.addContact_image);
         voiceButton.setOnClickListener(this);
 
         if (ActivityCompat.checkSelfPermission(AddContact.this, android.Manifest.permission.WRITE_CONTACTS)
@@ -180,6 +190,23 @@ public class AddContact extends AppCompatActivity implements View.OnClickListene
                             }
                             break;
                         }
+                        case "buck":
+                        case "back":{
+                            finish();
+                            break;
+                        }
+                        case "help":{
+                            intent = new Intent(AddContact.this, Help.class);
+                            intent.putExtra("callingActivity","AddContactActivity");
+                            startActivity(intent);
+                            break;
+                        }
+                        case "explain": {
+                            voiceButton.setEnabled(false);
+                            showExplanationDialog();
+                            voiceButton.setEnabled(true);
+                            break;
+                        }
                     }
                 }
 
@@ -193,6 +220,66 @@ public class AddContact extends AppCompatActivity implements View.OnClickListene
             @Override
             public void onEvent(int i, Bundle bundle) {
 
+            }
+        });
+    }
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(AddContact.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(AddContact.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality of creating and editing contacts.\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
             }
         });
     }
