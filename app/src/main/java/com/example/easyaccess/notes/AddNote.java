@@ -189,6 +189,7 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                             intent = new Intent(AddNote.this, Help.class);
                             intent.putExtra("callingActivity", "AddNoteActivity");
                             startActivity(intent);
+                            break;
                         }
 
                         case "explain": {

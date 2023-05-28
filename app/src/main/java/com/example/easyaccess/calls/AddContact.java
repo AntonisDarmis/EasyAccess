@@ -167,6 +167,8 @@ public class AddContact extends AppCompatActivity implements View.OnClickListene
                         {
                             if (parts.length > 1)
                             {
+                                Log.d("CALL NUMBER",parts[1]);
+                                parts = command.split(" ",2);
                                 parts[1] = parts[1].replaceAll("[^0-9]","");
                                 contactNumber.setText(parts[1]);
                                 break;

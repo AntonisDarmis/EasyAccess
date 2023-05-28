@@ -67,8 +67,10 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
     private String command;
     private EditText filter;
     private int recyclerPosition = 0;
-    // private boolean callsAccess = false;
-    // private boolean contactAccess = false;
+
+    private boolean isOnDeleteStage = false;
+
+    private String deleteContactName;
 
 
     @Override
@@ -88,7 +90,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
         voiceButton.setOnClickListener(this);
 
         filter = findViewById(R.id.filter);
-        filter.setPadding(2,0,0,0);
+        filter.setPadding(2, 0, 0, 0);
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -227,8 +229,16 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             //delete contact logic, ask for confirmation!
                             if (parts.length > 1) {
                                 parts[1] = parts[1].substring(0, 1).toUpperCase() + parts[1].substring(1);
-                                if (deleteContact(parts[1])) {
-                                    getContacts();
+                                for(Contact c: contactList){
+                                    Log.d("CONTACT NAME",c.getName());
+                                }
+                                Optional<Contact> foundContact = contactList.stream().filter(contact -> contact.getName().equals(parts[1])).findFirst();
+                                Log.d("INSIDE DELETE",parts[1]);
+                                if (foundContact.isPresent()) {
+                                    Log.d("FOUND CONTACT ",foundContact.get().getName());
+                                    deleteConfirmation(parts[1]);
+                                    isOnDeleteStage = true;
+                                    deleteContactName = foundContact.get().getName();
                                 }
                             }
                             //display activity for yes/no voice command
@@ -279,14 +289,13 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         case "recent": {
                             if (parts.length > 1) {
                                 Contact contact = findByName(contactList, parts[1]);
-                                if(contact != null) {
+                                if (contact != null) {
                                     intent = new Intent(Calls.this, History.class);
                                     intent.putExtra("Name", parts[1]);
                                     startActivity(intent);
                                     break;
 
-                                }
-                                else{
+                                } else {
                                     Toast.makeText(Calls.this, "No contact with given name found!", Toast.LENGTH_SHORT).show();
                                 }
                             } else {
@@ -294,16 +303,27 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                                 break;
                             }
                         }
-                        case "help":{
+                        case "help": {
                             intent = new Intent(Calls.this, Help.class);
-                            intent.putExtra("callingActivity","CallsActivity");
+                            intent.putExtra("callingActivity", "CallsActivity");
                             startActivity(intent);
+                            break;
                         }
                         case "explain": {
                             voiceButton.setEnabled(false);
                             showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
+                        }
+                        case "yes": {
+                            if (isOnDeleteStage) {
+                                if (deleteContact(deleteContactName)) {
+                                    Toast.makeText(Calls.this, "Contact deleted successfully", Toast.LENGTH_SHORT).show();
+                                    getContacts();
+                                    isOnDeleteStage = false;
+                                    deleteContactName = "";
+                                }
+                            }
                         }
                     }
                 }
@@ -321,6 +341,66 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
             }
         });
 
+    }
+
+    private void deleteConfirmation(String name) {
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Calls.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(Calls.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "Are you sure you want to delete contact " + name + "?" + "\nPress the button and respond with a yes or no.";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+        textToSpeech.shutdown();
     }
 
     private void showExplanationDialog() {
@@ -376,12 +456,13 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
 
                     // Speak the dialog message using TextToSpeech
                     String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
-                            "all of the contacts' functionalities, such as viewing contacts ,editing and creating, call history(and with a contact).\nSay 'HELP' to view the available commands!";
+                            "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
                     textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
                     dialogTextView.setText(dialogMessage);
                 }
             }
         });
+        textToSpeech.shutdown();
     }
 
 
@@ -514,7 +595,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         if (!containsContact(contactList, contact.getName())) {
                             contactList.add(contact);
                             Collections.reverse(contactList);
-                           // Log.d("CALL INFO:", "NAME: " + name + " DATE " + date + " PHOTO " + photo);
+                            // Log.d("CALL INFO:", "NAME: " + name + " DATE " + date + " PHOTO " + photo);
                         }
                     }
                 }
