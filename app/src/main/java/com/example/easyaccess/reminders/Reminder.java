@@ -2,7 +2,6 @@ package com.example.easyaccess.reminders;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -24,9 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.Help;
-import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
-import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -128,7 +125,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
             }
         });
         description = findViewById(R.id.reminder_description);
-        radioGroup = findViewById(R.id.radioGroup);
+        radioGroup = findViewById(R.id.radioGroupTransport);
         radioGroup.check(R.id.radioButtonOnce);
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);

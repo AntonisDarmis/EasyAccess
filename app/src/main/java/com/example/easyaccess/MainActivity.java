@@ -1,6 +1,7 @@
 package com.example.easyaccess;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.CALL_PHONE;
 import static android.Manifest.permission.INTERNET;
 import static android.Manifest.permission.READ_CALL_LOG;
@@ -37,7 +38,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.easyaccess.calls.Calls;
+import com.example.easyaccess.maps.CategoriesActivity;
 import com.example.easyaccess.maps.ChoiceActivity;
+import com.example.easyaccess.maps.DirectionsActivity;
 import com.example.easyaccess.notes.AddNote;
 import com.example.easyaccess.notes.AllNotes;
 import com.example.easyaccess.reminders.AllReminders;
@@ -70,7 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             SEND_SMS,
             RECEIVE_SMS,
             READ_CALL_LOG,
-            ACCESS_COARSE_LOCATION};
+            ACCESS_COARSE_LOCATION,
+            ACCESS_FINE_LOCATION};
 
 
     private SpeechRecognizer speechRecognizer;
@@ -283,13 +287,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //speechRecognizer.startListening(intentRecognizer);
         switch (view.getId()) {
             case R.id.button: {
-                Intent intent = new Intent(this, Reminder.class);
-                intent.putExtra("callingActivity", "Main");
+                Intent intent = new Intent(this, DirectionsActivity.class);
                 startActivity(intent);
                 break;
             }
             case R.id.button3: {
-                Intent intent = new Intent(this, AllReminders.class);
+                Intent intent = new Intent(this, CategoriesActivity.class);
                 startActivity(intent);
                 break;
             }

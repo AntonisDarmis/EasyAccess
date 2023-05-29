@@ -155,7 +155,7 @@
         app:layout_constraintVertical_bias="0.496" />
 
     <RadioGroup
-        android:id="@+id/radioGroup"
+        android:id="@+id/radioGroupTransport"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="false"
