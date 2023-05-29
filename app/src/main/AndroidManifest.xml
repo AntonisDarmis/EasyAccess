@@ -23,6 +23,9 @@
         android:theme="@style/Theme.EasyAccess"
         tools:targetApi="31">
         <activity
+            android:name=".maps.DirectionsActivity"
+            android:exported="false" />
+        <activity
             android:name=".maps.ChoiceActivity"
             android:exported="false" />
         <activity
