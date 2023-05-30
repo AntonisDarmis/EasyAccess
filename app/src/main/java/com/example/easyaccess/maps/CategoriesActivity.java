@@ -13,17 +13,23 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -45,6 +51,8 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
     private int recyclerPosition = 0;
 
     private List<GeneralCategory> allCategories = new ArrayList<>();
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
 
     private static final String capitalize(String str) {
         if (str == null || str.length() == 0) return str;
@@ -123,14 +131,21 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
                                 categoryRecyclerView.smoothScrollToPosition(recyclerPosition);
                             }
                         }, 500);
-                    } else if (command.equals("route")) {
+                    } else if (command.equals("destination")) {
                         ((TextView) findViewById(R.id.categoriesRoute)).setText(capitalize(command));
 
                     } else if (command.equals("back")) {
                         finish();
-
+                    } else if (command.equals("explain")) {
+                        voiceButton.setEnabled(false);
+                        ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                        String dialogMessage = "This activity serves the functionality of viewing stores based on given categories around a provided location." +
+                                ".\nSay 'HELP' to view the available commands!";
+                        dialogHelper.showExplanationDialog(dialogMessage);
+                        dialogHelper.shutdown();
+                        voiceButton.setEnabled(true);
                     } else if (Arrays.stream(categories).anyMatch(str -> str.equals(command))) {
-                        updateSubCategoryImage(command);
+                        updateSubCategoryImage(capitalize(command));
                     } else if (command.equals("show")) {
                         setLocation(((TextView) findViewById(R.id.categoriesRoute)).getText().toString());
                     }
@@ -183,19 +198,16 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
                 public void onProviderDisabled(String provider) {
                 }
             }, null);
-        }
-        else{
+        } else {
             openMapsWithCategories(capitalize(location));
         }
     }
 
-    private void openMapsWithCategories(String location){
-        String mapsLocation = location;  // Replace with the desired location coordinates
-
+    private void openMapsWithCategories(String location) {
         // Create the URI with the search query
         StringBuilder uri = new StringBuilder("geo:" + location + "?q=");
 
-        for (String category : getCheckedCategories()){
+        for (String category : getCheckedCategories()) {
             uri.append(Uri.encode(category)).append(",");
         }
 
@@ -210,22 +222,20 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
         List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
         boolean isIntentSafe = activities.size() > 0;
 
-// Start the activity if there is an app available
+        // Start the activity if there is an app available
         if (isIntentSafe) {
             startActivity(intent);
         } else {
             Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
         }
-
-
     }
 
     private List<String> getCheckedCategories() {
         List<String> checkedCategories = new ArrayList<>();
-        for (GeneralCategory generalCategory: allCategories){
-            for (SubCategory subCategory: generalCategory.getSubCategories()){
-                if(subCategory.isChecked()){
-                    Log.d("SUBCATEGORY",subCategory.getTitle());
+        for (GeneralCategory generalCategory : allCategories) {
+            for (SubCategory subCategory : generalCategory.getSubCategories()) {
+                if (subCategory.isChecked()) {
+                    Log.d("SUBCATEGORY", subCategory.getTitle());
                     checkedCategories.add(subCategory.getTitle());
                 }
             }
@@ -274,10 +284,9 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
             for (SubCategory subCat : category.getSubCategories()) {
                 if (subCat.getTitle().equalsIgnoreCase(subCategory)) {
                     // Set the new image for the subcategory
-                    if(subCat.isChecked()){
+                    if (subCat.isChecked()) {
                         subCat.setChecked(false);
-                    }
-                    else{
+                    } else {
                         subCat.setChecked(true);
                     }
                     break;
@@ -289,8 +298,22 @@ public class CategoriesActivity extends AppCompatActivity implements View.OnClic
         categoryAdapter.notifyDataSetChanged();
     }
 
+
     @Override
     public void onClick(View view) {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         speechRecognizer.startListening(intentRecognizer);
     }
 }

@@ -1,38 +1,37 @@
 package com.example.easyaccess.calls;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
-import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
-public class History extends AppCompatActivity implements View.OnClickListener{
+public class History extends AppCompatActivity implements View.OnClickListener {
 
     private TextToSpeech textToSpeech;
     private AlertDialog alertDialog;
@@ -56,6 +55,9 @@ public class History extends AppCompatActivity implements View.OnClickListener{
 
     private String contactName;
 
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +76,10 @@ public class History extends AppCompatActivity implements View.OnClickListener{
         Intent intent = getIntent();
         contactName = intent.getStringExtra("Name");
         contactName = contactName.substring(0, 1).toUpperCase() + contactName.substring(1);
+        ColorDrawable whiteBackground = new ColorDrawable(Color.WHITE);
         getSupportActionBar().setTitle("Call history with: " + contactName);
+        getSupportActionBar().setLogo(R.drawable.helpbotresized);
+        getSupportActionBar().setIcon(whiteBackground);
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
@@ -138,18 +143,18 @@ public class History extends AppCompatActivity implements View.OnClickListener{
                                 recyclerView.smoothScrollToPosition(recyclerPosition);
                             }
                         }, 500);
-                    }
-                    else if (parts[0].equals("back") || parts[0].equals("buck")){
+                    } else if (parts[0].equals("back") || parts[0].equals("buck")) {
                         finish();
-                    }
-                    else if(parts[0].equals("help")){
+                    } else if (parts[0].equals("help")) {
                         intent = new Intent(History.this, Help.class);
-                        intent.putExtra("callingActivity","HistoryActivity");
+                        intent.putExtra("callingActivity", "HistoryActivity");
                         startActivity(intent);
-                    }
-                    else if(parts[0].equals("explain")){
+                    } else if (parts[0].equals("explain")) {
                         voiceButton.setEnabled(false);
-                        showExplanationDialog();
+                        ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                        String dialogMessage = "This activity displays the recent calls history with a contact.\nSay 'HELP' to view the available commands!";
+                        dialogHelper.showExplanationDialog(dialogMessage);
+                        dialogHelper.shutdown();
                         voiceButton.setEnabled(true);
                     }
                 }
@@ -167,66 +172,6 @@ public class History extends AppCompatActivity implements View.OnClickListener{
             }
         });
         getHistory(contactName);
-    }
-
-    private void showExplanationDialog() {
-        // Initialize TextToSpeech
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Set the language to the appropriate locale
-                    textToSpeech.setLanguage(Locale.US);
-
-                    // Create and set the UtteranceProgressListener
-                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-                            // TTS started speaking, if needed
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            // TTS finished speaking, dismiss the dialog
-                            alertDialog.dismiss();
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-                            // TTS encountered an error, if needed
-                        }
-
-                        @Override
-                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
-                            // Update the dialog text as TTS speaks each word
-                            String dialogText = dialogTextView.getText().toString();
-                            dialogTextView.setText(dialogText);
-                        }
-                    });
-
-                    // Create the dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(History.this);
-                    builder.setCancelable(false);
-
-                    // Set the dialog view to a custom layout
-                    LayoutInflater inflater = LayoutInflater.from(History.this);
-                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
-                    builder.setView(dialogView);
-
-                    // Get the TextView from the custom layout
-                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
-
-                    // Show the dialog
-                    alertDialog = builder.create();
-                    alertDialog.show();
-
-                    // Speak the dialog message using TextToSpeech
-                    String dialogMessage = "This activity displays the recent calls history with a contact.\nSay 'HELP' to view the available commands!";
-                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
-                    dialogTextView.setText(dialogMessage);
-                }
-            }
-        });
     }
 
 
@@ -264,12 +209,11 @@ public class History extends AppCompatActivity implements View.OnClickListener{
                         int dur = Integer.parseInt(duration);
 
                         String total = "";
-                        if(dur > 60){
-                            int minutes = dur/60;
+                        if (dur > 60) {
+                            int minutes = dur / 60;
                             int seconds = dur % 60;
                             total = minutes + "m" + " " + seconds + "s";
-                        }
-                        else{
+                        } else {
                             total = dur + "s";
                         }
                         Contact contact = new Contact(dir, date.toString().substring(0, 11) + "-" + total, "Drawable");
@@ -285,6 +229,19 @@ public class History extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         speechRecognizer.startListening(intentRecognizer);
     }
 }

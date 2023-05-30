@@ -1,7 +1,5 @@
 package com.example.easyaccess;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -14,9 +12,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,7 +60,6 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
 
         activityCommands.put("HistoryActivity", Arrays.asList("Back : Go back", "Scroll down/up : Scrolls the list"));
 
-        activityCommands.put("ChoiceActivity", Arrays.asList("Command1", "Command2", "Command3"));
 
         activityCommands.put("NoteActivity", Arrays.asList("Back : Go back", "Clear [title/note] : Clears the note's title or the note", "Title [input] : Sets the title",
                 "Note [input] : Sets the note's context", "New line : Appends a new line to the note's context", "Store : Saves the note"));
@@ -88,6 +84,20 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
                 "Search [input] : Searches the conversation for the specified message", "Next : If matches were found, proceeds to the next",
                 "Previous : If matches were found, proceeds to the previous match", "Clear : Clears the search",
                 "Message [input] : Sets the message's context", "Send : Sends the message"));
+
+        activityCommands.put("ChoiceActivity", Arrays.asList("Directions : Opens the directions activity", "Categories : Opens the categories activity",
+                "Location : Opens maps with current location"));
+
+        activityCommands.put("CategoriesActivity", Arrays.asList("Scroll down/up : Scrolls the category list accordingly", "Back : Go back", "Route [address or area] : " +
+                "Provide the area you want view the categories for, or leave empty and view based on your current location", "[SubCategory] : By saying the title" +
+                "of any subcategory from the Categories list, it is marked as checked or unchecked(if it is checked already"));
+
+        activityCommands.put("DirectionsActivity", Arrays.asList("Destination [address or area] : Sets the destination for which directions will be displayed",
+                "Start [address/area or empty] : ", "Transport [car/public transport/on foot] : Sets the means of transport",
+                "Avoid tolls: If car option is selected, avoid tolls for route",
+                "Avoid motorways: If car option is selected, avoid highways for route.", "Avoid ferries: If car option is selected, avoid ferries.",
+                "(Not a command!) In the case of public transport as selected option, by default it finds a wheelchair accessible route.",
+                "Directions: Opens maps and displays the directions for the selected route."));
 
         Intent intent = getIntent();
         String callingActivity = intent.getStringExtra("callingActivity");
@@ -223,7 +233,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
         }
     }
 
-    private void setTTS(){
+    private void setTTS() {
         textToSpeech = new TextToSpeech(Help.this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {

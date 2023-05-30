@@ -4,8 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/light_blue"
     tools:context=".reminders.AllReminders">
+
+    <ImageView
+        android:id="@+id/imageView16"
+        android:layout_width="47dp"
+        android:layout_height="43dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.956"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.025"
+        app:srcCompat="@drawable/helpbotresized" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/a_voice"
@@ -39,17 +53,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_background"
-        android:fontFamily="serif-monospace"
+        android:fontFamily="sans-serif"
         android:text="Edit/Delete reminders"
         android:textColor="@color/black"
         android:textSize="26sp"
-        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.028"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.027" />
+        app:layout_constraintVertical_bias="0.028" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/allRemindersRecycler"

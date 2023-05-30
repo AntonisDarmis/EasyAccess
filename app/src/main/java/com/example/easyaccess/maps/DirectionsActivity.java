@@ -9,10 +9,13 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -20,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -38,8 +42,10 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
     private String transportOption;
 
-
     private String command;
+
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,8 +105,12 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     switch (parts[0]) {
-                        case "route": {
+                        case "destination": {
                             ((TextView) findViewById(R.id.route)).setText(parts[0].substring(0, 1).toUpperCase(Locale.ROOT) + parts[0].substring(1));
+                            break;
+                        }
+                        case "start": {
+                            ((TextView) findViewById(R.id.start)).setText(parts[0].substring(0, 1).toUpperCase(Locale.ROOT) + parts[0].substring(1));
                             break;
                         }
                         case "transport": {
@@ -160,6 +170,15 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                                 }
                                 break;
                             }
+                            case "explain": {
+                                voiceButton.setEnabled(false);
+                                ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                                String dialogMessage = "This activity serves the functionality of getting and viewing directions to a certain address or area.\nSay 'HELP' to view the available commands!";
+                                dialogHelper.showExplanationDialog(dialogMessage);
+                                dialogHelper.shutdown();
+                                voiceButton.setEnabled(true);
+                                break;
+                            }
                         }
                     }
                 }
@@ -181,7 +200,7 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
     private void setRouteOptions() {
         int selectedId = transportOptions.getCheckedRadioButtonId();
-        RadioButton selectedRadioButton = (RadioButton) findViewById(selectedId);
+        RadioButton selectedRadioButton = findViewById(selectedId);
         if (selectedRadioButton.getText().toString().equals("Car")) {
             transportOption = "car";
             routeOptions.setVisibility(View.VISIBLE);
@@ -201,9 +220,18 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
 
     private void openDestinationByCar() {
-        String destination = ((TextView) findViewById(R.id.route)).getText().toString();  // Replace with the destination address or coordinates
+        String start = ((TextView) findViewById(R.id.start)).getText().toString();
+        String destination = ((TextView) findViewById(R.id.route)).getText().toString();
+        String uri = "";
+        if (start.isEmpty()) {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + destination;
+        } else {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=" + start + "&destination=" + destination;
+        }
+
+        Log.d("START", start);
         Log.d("DESTINATION", destination);
-        String uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + destination;
+
         CheckBox option1, option2, option3;
         option1 = routeOptions.findViewById(R.id.checkBox_option1);
         option2 = routeOptions.findViewById(R.id.checkBox_option2);
@@ -245,8 +273,14 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void openDestinationByPublicTransport() {
+        String start = ((TextView) findViewById(R.id.start)).getText().toString();
         String destination = ((TextView) findViewById(R.id.route)).getText().toString();
-        String uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=" + destination;
+        String uri = "";
+        if (start.isEmpty()) {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=" + destination;
+        } else {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=" + start + "&destination=" + destination;
+        }
         uri += "&transit_routing_preference=accessible";
         // Create the intent to open Maps
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
@@ -266,8 +300,14 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void openDestinationByWalking() {
+        String start = ((TextView) findViewById(R.id.start)).getText().toString();
         String destination = ((TextView) findViewById(R.id.route)).getText().toString();
-        String uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + destination;
+        String uri = "";
+        if (start.isEmpty()) {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + destination;
+        } else {
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + start + "&destination=" + destination;
+        }
         uri += "&dir_action=w";
         // Create the intent to open Maps
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
@@ -289,6 +329,19 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
     @Override
     public void onClick(View view) {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         speechRecognizer.startListening(intentRecognizer);
     }
 }

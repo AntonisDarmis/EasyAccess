@@ -7,18 +7,6 @@
     android:background="@color/light_blue"
     tools:context=".sms.SMS">
 
-    <ImageView
-        android:id="@+id/searchIcon"
-        android:layout_width="30dp"
-        android:layout_height="39dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.014"
-        app:srcCompat="@android:drawable/ic_menu_search" />
-
     <androidx.cardview.widget.CardView
         android:id="@+id/s_voice"
         android:layout_width="393dp"
@@ -64,6 +52,20 @@
         app:layout_constraintVertical_bias="0.014" />
 
 
+    <ImageView
+        android:id="@+id/imageView20"
+        android:layout_width="36dp"
+        android:layout_height="34dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.014"
+        app:srcCompat="@drawable/helpbotresized" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/conversations_recycler"
         android:layout_width="399dp"
@@ -87,5 +89,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/searchIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.852"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.014"
+        app:srcCompat="@android:drawable/ic_menu_search" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

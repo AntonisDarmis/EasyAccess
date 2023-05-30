@@ -18,18 +18,16 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
@@ -38,9 +36,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.easyaccess.calls.Calls;
-import com.example.easyaccess.maps.CategoriesActivity;
-import com.example.easyaccess.maps.ChoiceActivity;
-import com.example.easyaccess.maps.DirectionsActivity;
 import com.example.easyaccess.notes.AddNote;
 import com.example.easyaccess.notes.AllNotes;
 import com.example.easyaccess.reminders.AllReminders;
@@ -60,9 +55,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-    private TextToSpeech textToSpeech;
-    private AlertDialog alertDialog;
-    private TextView dialogTextView;
+    private static final int PERMISSION_REQUEST_CODE = 1;
     String[] permissions = {
             RECORD_AUDIO,
             INTERNET,
@@ -75,24 +68,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             READ_CALL_LOG,
             ACCESS_COARSE_LOCATION,
             ACCESS_FINE_LOCATION};
-
-
     private SpeechRecognizer speechRecognizer;
-    private Button button1, button2, button3;
     private Intent intentRecognizer;
     private String command;
-    private TextView textView;
 
     private ImageView voiceButton;
     private ReminderDatabaseHelper databaseHelper;
-
-
     private ReminderAdapter adapter;
     private RecyclerView recyclerView;
 
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
 
     private List<ReminderModel> reminders = new ArrayList<>();
-    private static final int PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,18 +104,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         voiceButton = findViewById(R.id.main_voice);
         voiceButton.setOnClickListener(this);
 
-        button1 = findViewById(R.id.button);
-        button1.setOnClickListener(this);
-
-        button2 = findViewById(R.id.button2);
-        button2.setOnClickListener(this);
-
-        button3 = findViewById(R.id.button3);
-        button3.setOnClickListener(this);
-
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        // intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "el-gr");
         intentRecognizer.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
         speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -153,13 +131,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing...");
                 speechRecognizer.stopListening();
 
             }
 
             @Override
             public void onError(int i) {
-
+                messageTextView.setText("Error occurred");
             }
 
             @Override
@@ -168,9 +147,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (matches != null) {
                     // textView.setText(command);
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
-                    Log.d("VOICE COMMAND IN ADD", command);
+
                     //textView.setText(command);
                     Intent intent;
                     switch (parts[0]) {
@@ -226,7 +206,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                         case "explain": {
                             voiceButton.setEnabled(false);
-                            showExplanationDialog();
+                            ExplanationDialogHelper explanationDialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                            String dialogMessage = "This activity is the base of the application. Through this activity, by using the correct commands, you can navigate through " +
+                                    "the whole application and its functionalities.\nSay 'HELP' to view the available commands!";
+                            explanationDialogHelper.showExplanationDialog(dialogMessage);
+                            explanationDialogHelper.shutdown();
                             voiceButton.setEnabled(true);
                             break;
                         }
@@ -284,27 +268,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        //speechRecognizer.startListening(intentRecognizer);
-        switch (view.getId()) {
-            case R.id.button: {
-                Intent intent = new Intent(this, DirectionsActivity.class);
-                startActivity(intent);
-                break;
-            }
-            case R.id.button3: {
-                Intent intent = new Intent(this, CategoriesActivity.class);
-                startActivity(intent);
-                break;
-            }
-            case R.id.button2: {
-                Intent intent = new Intent(this, AddNote.class);
-                intent.putExtra("callingActivity", "Main");
-                startActivity(intent);
-            }
-            case R.id.main_voice: {
-                speechRecognizer.startListening(intentRecognizer);
-            }
-        }
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+        speechRecognizer.startListening(intentRecognizer);
     }
 
     private boolean arePermissionsGranted() {
@@ -331,70 +309,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             if (!allPermissionsGranted) {
                 Toast.makeText(getApplicationContext(), "Some permissions are not enabled", Toast.LENGTH_SHORT).show();
+                finish();
             }
         }
-    }
-
-
-    private void showExplanationDialog() {
-        // Initialize TextToSpeech
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Set the language to the appropriate locale
-                    textToSpeech.setLanguage(Locale.US);
-
-                    // Create and set the UtteranceProgressListener
-                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-                            // TTS started speaking, if needed
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            // TTS finished speaking, dismiss the dialog
-                            alertDialog.dismiss();
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-                            // TTS encountered an error, if needed
-                        }
-
-                        @Override
-                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
-                            // Update the dialog text as TTS speaks each word
-                            String dialogText = dialogTextView.getText().toString();
-                            dialogTextView.setText(dialogText);
-                        }
-                    });
-
-                    // Create the dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setCancelable(false);
-
-                    // Set the dialog view to a custom layout
-                    LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
-                    builder.setView(dialogView);
-
-                    // Get the TextView from the custom layout
-                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
-
-                    // Show the dialog
-                    alertDialog = builder.create();
-                    alertDialog.show();
-
-                    // Speak the dialog message using TextToSpeech
-                    String dialogMessage = "This activity is the base of the application. Through this activity, by using the correct commands, you can navigate through " +
-                            "the whole application and its functionalities.\nSay 'HELP' to view the available commands!";
-                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
-                    dialogTextView.setText(dialogMessage);
-                }
-            }
-        });
     }
 
 

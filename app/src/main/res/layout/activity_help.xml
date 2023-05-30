@@ -9,31 +9,31 @@
 
     <TextView
         android:id="@+id/callingActivity"
-        android:layout_width="372dp"
-        android:layout_height="35dp"
-        android:background="@drawable/rounded_background"
+        android:layout_width="345dp"
+        android:layout_height="57dp"
+        android:background="@android:drawable/dialog_holo_light_frame"
         android:fontFamily="monospace"
-        android:text="Commands for current activity"
+        android:text="The left column displays the list of commands the user can provide based on the current activity. Brackets act as user input. Say 'READ' to hear the commands."
         android:textColor="@color/black"
-        android:textSize="20sp"
+        android:textSize="10sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.372"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.015" />
+        app:layout_constraintVertical_bias="0.016" />
 
     <ListView
         android:id="@+id/commands"
-        android:layout_width="401dp"
-        android:layout_height="367dp"
+        android:layout_width="403dp"
+        android:layout_height="352dp"
         android:background="@android:drawable/dialog_holo_light_frame"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.186" />
+        app:layout_constraintVertical_bias="0.223" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/he_voice"
@@ -72,4 +72,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.69" />
+
+    <ImageView
+        android:id="@+id/imageView10"
+        android:layout_width="44dp"
+        android:layout_height="49dp"
+        android:background="@color/white"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.024"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.017"
+        app:srcCompat="@drawable/helpbot" />
 </androidx.constraintlayout.widget.ConstraintLayout>

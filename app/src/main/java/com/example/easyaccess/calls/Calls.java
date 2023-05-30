@@ -1,12 +1,5 @@
 package com.example.easyaccess.calls;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentProviderOperation;
@@ -26,19 +19,28 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.easyaccess.DialogFormatter;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
 import com.example.easyaccess.LeveshteinDistance;
-import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,13 +48,14 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.text.Normalizer;
 import java.util.Optional;
 
 public class Calls extends AppCompatActivity implements View.OnClickListener {
 
     private TextToSpeech textToSpeech;
     private AlertDialog alertDialog;
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
     private TextView dialogTextView;
     private RecyclerView recyclerView;
     private List<Contact> contactList;
@@ -72,6 +75,23 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
 
     private String deleteContactName;
 
+    private static String stripAccents(String s) {
+        s = Normalizer.normalize(s, Normalizer.Form.NFD);
+        s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return s;
+    }
+
+    private static Contact findByName(Collection<Contact> contactList, String name) {
+        return contactList.stream().filter(contact -> name.equals(contact.getName().toLowerCase())).findFirst().orElse(null);
+    }
+
+    private static final String capitalize(String str) {
+
+        if (str == null || str.length() == 0) return str;
+
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+
+    }
 
     @Override
     public void onResume() {
@@ -229,13 +249,13 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             //delete contact logic, ask for confirmation!
                             if (parts.length > 1) {
                                 parts[1] = parts[1].substring(0, 1).toUpperCase() + parts[1].substring(1);
-                                for(Contact c: contactList){
-                                    Log.d("CONTACT NAME",c.getName());
+                                for (Contact c : contactList) {
+                                    Log.d("CONTACT NAME", c.getName());
                                 }
                                 Optional<Contact> foundContact = contactList.stream().filter(contact -> contact.getName().equals(parts[1])).findFirst();
-                                Log.d("INSIDE DELETE",parts[1]);
+                                Log.d("INSIDE DELETE", parts[1]);
                                 if (foundContact.isPresent()) {
-                                    Log.d("FOUND CONTACT ",foundContact.get().getName());
+                                    Log.d("FOUND CONTACT ", foundContact.get().getName());
                                     deleteConfirmation(parts[1]);
                                     isOnDeleteStage = true;
                                     deleteContactName = foundContact.get().getName();
@@ -311,7 +331,11 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         }
                         case "explain": {
                             voiceButton.setEnabled(false);
-                            showExplanationDialog();
+                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                            String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
+                                    "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
+                            dialogHelper.showExplanationDialog(dialogMessage);
+                            dialogHelper.shutdown();
                             voiceButton.setEnabled(true);
                             break;
                         }
@@ -403,69 +427,6 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
         textToSpeech.shutdown();
     }
 
-    private void showExplanationDialog() {
-        // Initialize TextToSpeech
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Set the language to the appropriate locale
-                    textToSpeech.setLanguage(Locale.US);
-
-                    // Create and set the UtteranceProgressListener
-                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-                            // TTS started speaking, if needed
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            // TTS finished speaking, dismiss the dialog
-                            alertDialog.dismiss();
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-                            // TTS encountered an error, if needed
-                        }
-
-                        @Override
-                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
-                            // Update the dialog text as TTS speaks each word
-                            String dialogText = dialogTextView.getText().toString();
-                            dialogTextView.setText(dialogText);
-                        }
-                    });
-
-                    // Create the dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Calls.this);
-                    builder.setCancelable(false);
-
-                    // Set the dialog view to a custom layout
-                    LayoutInflater inflater = LayoutInflater.from(Calls.this);
-                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
-                    builder.setView(dialogView);
-
-                    // Get the TextView from the custom layout
-                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
-
-                    // Show the dialog
-                    alertDialog = builder.create();
-                    alertDialog.show();
-
-                    // Speak the dialog message using TextToSpeech
-                    String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
-                            "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
-                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
-                    dialogTextView.setText(dialogMessage);
-                }
-            }
-        });
-        textToSpeech.shutdown();
-    }
-
-
     private void getContacts() {
         contactList.clear();
         adapter = new ContactAdapter(this, contactList);
@@ -485,6 +446,19 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         speechRecognizer.startListening(intentRecognizer);
 
     }
@@ -502,12 +476,6 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
         Collections.sort(contactList, Comparator.comparing(Contact::getName));
         adapter.notifyDataSetChanged();
 
-    }
-
-    private static String stripAccents(String s) {
-        s = Normalizer.normalize(s, Normalizer.Form.NFD);
-        s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-        return s;
     }
 
     @Override
@@ -552,11 +520,6 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
         }
         // Other 'case' lines to check for other
         // permissions this app might request.
-    }
-
-
-    private static Contact findByName(Collection<Contact> contactList, String name) {
-        return contactList.stream().filter(contact -> name.equals(contact.getName().toLowerCase())).findFirst().orElse(null);
     }
 
     private void getCallLogs() {
@@ -630,14 +593,6 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
             e.printStackTrace();
         }
         return false;
-    }
-
-    private static final String capitalize(String str) {
-
-        if (str == null || str.length() == 0) return str;
-
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-
     }
 }
 

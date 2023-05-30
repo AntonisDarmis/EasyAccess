@@ -7,6 +7,20 @@
     android:background="@color/light_blue"
     tools:context=".maps.CategoriesActivity">
 
+    <ImageView
+        android:id="@+id/imageView12"
+        android:layout_width="47dp"
+        android:layout_height="43dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.928"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.132"
+        app:srcCompat="@drawable/helpbotresized" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/cat_voice"
         android:layout_width="393dp"
@@ -35,32 +49,32 @@
 
     <TextView
         android:id="@+id/categoriesRoute"
-        android:layout_width="382dp"
-        android:layout_height="37dp"
+        android:layout_width="386dp"
+        android:layout_height="51dp"
         android:background="@drawable/rounded_background"
-        android:hint='Say "Route" and provide the address/area'
+        android:hint='Say "Destination" and provide the address or area or leave empty to set current location'
         android:textSize="19sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.482"
+        app:layout_constraintHorizontal_bias="0.48"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.028" />
 
     <TextView
         android:id="@+id/textView20"
-        android:layout_width="394dp"
-        android:layout_height="47dp"
+        android:layout_width="284dp"
+        android:layout_height="48dp"
         android:text="Specify the categories you want \nto search for:"
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textColor="@color/black"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.47"
+        app:layout_constraintHorizontal_bias="0.116"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.107" />
+        app:layout_constraintVertical_bias="0.129" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/categoryRecyclerView"
@@ -70,9 +84,9 @@
         android:background="@android:drawable/dialog_holo_light_frame"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.4"
+        app:layout_constraintHorizontal_bias="0.45"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView20"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.419" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,13 +16,13 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,11 +33,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
 import com.example.easyaccess.LeveshteinDistance;
 import com.example.easyaccess.R;
-import com.example.easyaccess.calls.Calls;
-import com.example.easyaccess.calls.Contact;
 
 import java.text.Normalizer;
 import java.text.ParseException;
@@ -54,9 +53,8 @@ import java.util.Map;
 
 public class SMS extends AppCompatActivity implements View.OnClickListener {
 
-    private TextToSpeech textToSpeech;
-    private AlertDialog alertDialog;
-    private TextView dialogTextView;
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
 
     private RecyclerView recyclerView;
     private Map<String, String[]> contactCache = new HashMap<>(); // Cache to store already fetched contact information
@@ -82,6 +80,28 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
     private SmsReceiver smsReceiver;
 
+    private static String capitalize(String str) {
+
+        if (str == null || str.length() == 0) return str;
+
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+
+    }
+
+    private static String stripAccents(String s) {
+        s = Normalizer.normalize(s, Normalizer.Form.NFD);
+        s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return s;
+    }
+
+    private static String millisToDate(long currentTime) {
+        String finalDate;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(currentTime);
+        Date date = calendar.getTime();
+        finalDate = date.toString();
+        return finalDate;
+    }
 
     @Override
     /**
@@ -128,8 +148,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECEIVE_SMS}, 1);
 
         }
-
-
 
 
         intentRecognizer = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -246,20 +264,23 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                         case "buck":
-                        case "back":{
+                        case "back": {
                             finish();
                             break;
                         }
-                        case "help":{
+                        case "help": {
                             intent = new Intent(SMS.this, Help.class);
-                            intent.putExtra("callingActivity","SMSActivity");
+                            intent.putExtra("callingActivity", "SMSActivity");
                             startActivity(intent);
                             break;
                         }
-
                         case "explain": {
                             voiceButton.setEnabled(false);
-                            showExplanationDialog();
+                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
+                            String dialogMessage = "This activity serves the SMS functionality. Through this activity, by using the correct commands, you can view chat conversations," +
+                                    " latest SMS messages, start new conversations and search messages.\nSay 'HELP' to view the available commands!";
+                            dialogHelper.showExplanationDialog(dialogMessage);
+                            dialogHelper.shutdown();
                             voiceButton.setEnabled(true);
                             break;
                         }
@@ -278,68 +299,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
             }
         });
     }
-
-    private void showExplanationDialog() {
-        // Initialize TextToSpeech
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Set the language to the appropriate locale
-                    textToSpeech.setLanguage(Locale.US);
-
-                    // Create and set the UtteranceProgressListener
-                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-                            // TTS started speaking, if needed
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            // TTS finished speaking, dismiss the dialog
-                            alertDialog.dismiss();
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-                            // TTS encountered an error, if needed
-                        }
-
-                        @Override
-                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
-                            // Update the dialog text as TTS speaks each word
-                            String dialogText = dialogTextView.getText().toString();
-                            dialogTextView.setText(dialogText);
-                        }
-                    });
-
-                    // Create the dialog
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SMS.this);
-                    builder.setCancelable(false);
-
-                    // Set the dialog view to a custom layout
-                    LayoutInflater inflater = LayoutInflater.from(SMS.this);
-                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
-                    builder.setView(dialogView);
-
-                    // Get the TextView from the custom layout
-                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
-
-                    // Show the dialog
-                    alertDialog = builder.create();
-                    alertDialog.show();
-
-                    // Speak the dialog message using TextToSpeech
-                    String dialogMessage = "This activity serves the SMS functionality. Through this activity, by using the correct commands, you can view chat conversations," +
-                            " latest SMS messages, start new conversations and search messages.\nSay 'HELP' to view the available commands!";
-                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
-                    dialogTextView.setText(dialogMessage);
-                }
-            }
-        });
-    }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -385,7 +344,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
             }
         }
     }
-
 
     /**
      * body is the message body, type = 1 means received, type = 2 means sent and address is the message's sender
@@ -460,9 +418,21 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
+        View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+        // Create the popup window
+        popupWindow = new PopupWindow(popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true);
+
+        // Find the TextView in the popup layout
+        messageTextView = popupView.findViewById(R.id.messageTextView);
+
+        // Show the popup window at the center of the screen
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
         speechRecognizer.startListening(intentRecognizer);
     }
-
 
     private String formatString(String body) {
 
@@ -502,21 +472,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
         return fields;
     }
 
-    private static String capitalize(String str) {
-
-        if (str == null || str.length() == 0) return str;
-
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-
-    }
-
-    private static String stripAccents(String s) {
-        s = Normalizer.normalize(s, Normalizer.Form.NFD);
-        s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-        return s;
-    }
-
-
     private void filterList(String filter) {
         List<SMSConversation> filteredList = new ArrayList<>();
         for (SMSConversation sms : conversationList) {
@@ -530,15 +485,6 @@ public class SMS extends AppCompatActivity implements View.OnClickListener {
         Collections.sort(conversationList, Comparator.comparing(SMSConversation::getName));
         adapter.notifyDataSetChanged();
 
-    }
-
-    private static String millisToDate(long currentTime) {
-        String finalDate;
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(currentTime);
-        Date date = calendar.getTime();
-        finalDate = date.toString();
-        return finalDate;
     }
 
     protected void onResume() {

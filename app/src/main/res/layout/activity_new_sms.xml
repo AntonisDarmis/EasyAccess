@@ -9,6 +9,20 @@
 
 
     <ImageView
+        android:id="@+id/imageView18"
+        android:layout_width="47dp"
+        android:layout_height="43dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.021"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.103"
+        app:srcCompat="@drawable/helpbotresized" />
+
+    <ImageView
         android:id="@+id/sendButton2"
         android:layout_width="40dp"
         android:layout_height="49dp"
@@ -30,7 +44,7 @@
         android:layout_weight="1"
         android:background="@drawable/rounded_edittext"
         android:clickable="false"
-        android:hint="Type your message..."
+        android:hint="Say &quot;message&quot; and speak..."
         android:inputType="textMultiLine"
         android:singleLine="false"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -70,6 +84,7 @@
         android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/rounded_background"
         android:text="To:"
         android:textSize="18sp"
         android:textStyle="bold|italic"
@@ -84,20 +99,22 @@
         android:id="@+id/newSMS_number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/rounded_background"
         android:text="TextView"
         android:textSize="18sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.162"
+        app:layout_constraintHorizontal_bias="0.207"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.027" />
+        app:layout_constraintVertical_bias="0.028" />
 
     <ImageView
         android:id="@+id/imageView6"
-        android:layout_width="37dp"
-        android:layout_height="30dp"
+        android:layout_width="39dp"
+        android:layout_height="38dp"
+        android:background="@drawable/rounded_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.957"

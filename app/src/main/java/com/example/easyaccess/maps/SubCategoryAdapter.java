@@ -32,10 +32,8 @@ public class SubCategoryAdapter extends RecyclerView.Adapter<SubCategoryAdapter.
     public void onBindViewHolder(@NonNull SubCategoryViewHolder holder, int position) {
         SubCategory subCategory = subCategories.get(position);
         holder.subCategoryTitle.setText(subCategory.getTitle());
+        holder.subCategoryIcon.setImageResource(android.R.drawable.checkbox_off_background);
         if(subCategory.isChecked()) {
-            holder.subCategoryIcon.setImageResource(android.R.drawable.checkbox_off_background);
-        }
-        else {
             holder.subCategoryIcon.setImageResource(android.R.drawable.checkbox_on_background);
         }
     }

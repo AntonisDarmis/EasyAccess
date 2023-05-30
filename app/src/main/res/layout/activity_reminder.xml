@@ -7,6 +7,20 @@
     android:background="@color/light_blue"
     tools:context=".reminders.Reminder">
 
+    <ImageView
+        android:id="@+id/imageView19"
+        android:layout_width="47dp"
+        android:layout_height="43dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.958"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.023"
+        app:srcCompat="@drawable/helpbotresized" />
+
     <EditText
         android:id="@+id/reminder_description"
         android:layout_width="342dp"
@@ -52,19 +66,20 @@
 
     <TextView
         android:id="@+id/textView3"
-        android:layout_width="271dp"
-        android:layout_height="45dp"
+        android:layout_width="241dp"
+        android:layout_height="42dp"
         android:background="@drawable/rounded_background"
         android:fontFamily="monospace"
-        android:text=" Set a reminder"
+        android:text="Set a reminder"
+        android:textAlignment="viewStart"
         android:textSize="26sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.7"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.028" />
+        app:layout_constraintVertical_bias="0.023" />
 
     <ImageView
         android:id="@+id/imageView2"

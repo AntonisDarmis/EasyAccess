@@ -8,22 +8,37 @@
     tools:context=".maps.DirectionsActivity">
 
 
+    <TextView
+        android:id="@+id/start"
+        android:layout_width="386dp"
+        android:layout_height="51dp"
+        android:background="@drawable/rounded_background"
+        android:hint='Say "start" and provide an addres ,area or leave empty to set current location as start'
+        android:textColor="@color/black"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.466"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.122" />
 
     <TextView
         android:id="@+id/textView17"
-        android:layout_width="231dp"
-        android:layout_height="40dp"
+        android:layout_width="226dp"
+        android:layout_height="38dp"
         android:background="@drawable/rounded_background"
         android:fontFamily="monospace"
         android:text="Route details"
-        android:textAlignment="center"
+        android:textAlignment="viewStart"
         android:textSize="26sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.01" />
+        app:layout_constraintVertical_bias="0.028" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/dir_voice"
@@ -53,30 +68,30 @@
 
     <TextView
         android:id="@+id/route"
-        android:layout_width="382dp"
-        android:layout_height="37dp"
+        android:layout_width="386dp"
+        android:layout_height="51dp"
         android:background="@drawable/rounded_background"
-        android:hint='Say "Route" and provide the address/area'
+        android:hint='Say "Destination" and provide the address\nor area'
         android:textColor="@color/black"
         android:textSize="19sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.448"
+        app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.128" />
+        app:layout_constraintVertical_bias="0.244" />
 
     <RadioGroup
         android:id="@+id/radioGroupTransport"
-        android:layout_width="362dp"
-        android:layout_height="37dp"
+        android:layout_width="369dp"
+        android:layout_height="40dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/route"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.555"
         app:layout_constraintStart_toStartOf="@+id/route"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.238">
+        app:layout_constraintVertical_bias="0.365">
 
         <RadioButton
             android:id="@+id/radioButton_car"
@@ -112,22 +127,22 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.056"
+        app:layout_constraintHorizontal_bias="0.074"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.329" />
+        app:layout_constraintVertical_bias="0.451" />
 
     <LinearLayout
         android:id="@+id/routeOptions"
-        android:layout_width="362dp"
-        android:layout_height="wrap_content"
+        android:layout_width="365dp"
+        android:layout_height="43dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/route"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.451"
         app:layout_constraintStart_toStartOf="@+id/route"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.413">
+        app:layout_constraintVertical_bias="0.541">
 
         <CheckBox
             android:id="@+id/checkBox_option1"
@@ -168,6 +183,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.658" />
+
+    <ImageView
+        android:id="@+id/imageView11"
+        android:layout_width="51dp"
+        android:layout_height="44dp"
+        android:background="@drawable/rounded_background"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.905"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.027"
+        app:srcCompat="@drawable/helpbotresized" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

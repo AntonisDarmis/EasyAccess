@@ -23,7 +23,7 @@
         app:layout_constraintVertical_bias="0.01" />
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/calls_voice"
+        android:id="@+id/ch_voice"
         android:layout_width="393dp"
         android:layout_height="161dp"
         android:layout_margin="16dp"
@@ -37,7 +37,7 @@
         app:layout_constraintVertical_bias="0.992">
 
         <ImageView
-            android:id="@+id/call_image"
+            android:id="@+id/choice_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/white"
@@ -178,7 +178,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="         Say &quot;Help&quot;"
+            android:text="       Say &quot;Explain&quot;"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold|italic" />

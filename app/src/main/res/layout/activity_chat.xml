@@ -22,9 +22,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:clickable="false"
             android:background="@drawable/rounded_edittext"
-            android:hint="Type your message..." />
+            android:clickable="false"
+            android:hint="Say &quot;Message&quot; and speak..." />
 
         <ImageView
             android:id="@+id/sendButton"
