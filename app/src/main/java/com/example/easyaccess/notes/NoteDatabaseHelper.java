@@ -125,4 +125,14 @@ public class NoteDatabaseHelper extends SQLiteOpenHelper {
 
         return rowsDeleted > 0;
     }
+
+    public boolean deleteAllNotes() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int rowsDeleted = db.delete(TABLE_NOTES, null, null);
+
+        db.close();
+
+        return rowsDeleted > 0;
+    }
 }

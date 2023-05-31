@@ -183,19 +183,18 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
                             finish();
                             break;
                         }
-                        case "view": {
+                        case "open": {
                             //handle edit note logic
                             if (parts.length > 1) {
                                 popupWindow.dismiss();
                                 long id = NumberConverter.convertWordsToNumber(parts[1]);
                                 //implement logic, check if note exists in list
-                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == id);
+                                Optional<Note> note = notes.stream().filter(n -> n.getId() == id).findFirst();
                                 if (note.isPresent()) {
                                     intent = new Intent(AllNotes.this, AddNote.class);
                                     intent.putExtra("callingActivity", "AllNotes");
                                     intent.putExtra("note", note.get());
                                     startActivity(intent);
-                                    break;
                                 } else {
                                     Toast.makeText(getApplicationContext(), "No note with given ID found!", Toast.LENGTH_SHORT).show();
                                 }
@@ -207,7 +206,7 @@ public class AllNotes extends AppCompatActivity implements View.OnClickListener 
                                 popupWindow.dismiss();
                                 //handle delete logic, if note exists in list
                                 long id = NumberConverter.convertWordsToNumber(parts[1]);
-                                Optional<Note> note = notes.stream().findFirst().filter(n -> n.getId() == id);
+                                Optional<Note> note = notes.stream().filter(n -> n.getId() == id).findFirst();
                                 if (note.isPresent()) {
                                     noteDatabaseHelper = new NoteDatabaseHelper(getApplicationContext());
                                     if (noteDatabaseHelper.deleteNoteById(note.get().getId())) {

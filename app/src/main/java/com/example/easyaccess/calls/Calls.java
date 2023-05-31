@@ -132,6 +132,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
 
                     String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
                             "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
                     dialogTextView.setText(dialogMessage);
                 }
             }

@@ -48,7 +48,7 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
 
     private String callingActivity;
 
-    private long noteID;
+    private int noteID;
 
     private TextToSpeech textToSpeech;
     private AlertDialog alertDialog;
@@ -244,16 +244,19 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                                 long successful = 0;
                                 Note note = new Note(title.getText().toString(), description.getText().toString());
                                 if (callingActivity.equals("Main")) {
+                                    Log.d("EDIT NOTE",  note.getTitle() + " " + note.getDescription());
                                     successful = noteDatabaseHelper.addNote(note);
                                 } else {
                                     //handle edit note logic
                                     note.setTitle(title.getText().toString());
                                     note.setDescription(description.getText().toString());
-                                    successful = noteDatabaseHelper.updateNoteById(note.getId(), note);
+                                    Log.d("EDIT NOTE", "ID" + note.getId()+" " + note.getTitle() + " " + note.getDescription());
+                                    successful = noteDatabaseHelper.updateNoteById(noteID, note);
                                 }
                                 if (successful < 0) {
                                     Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
                                 } else {
+                                    Toast.makeText(AddNote.this, "Note saved successfully!", Toast.LENGTH_SHORT).show();
                                     finish();
                                 }
                             }

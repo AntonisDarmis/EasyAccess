@@ -403,54 +403,48 @@ public class AddContact extends AppCompatActivity implements View.OnClickListene
     }
 
     private void saveEdited() {
+        ArrayList<ContentProviderOperation> cpo = new ArrayList<>();
+        //add edited number
+        cpo.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(ContactsContract.Data.DISPLAY_NAME + " = ? AND " +
+                                ContactsContract.Data.MIMETYPE + " = ?",
+                        new String[]{contact.getName(),
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE})
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, contactNumber.getText().toString())
+                .build());
+        //add edited name
+        cpo.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(ContactsContract.Data.DISPLAY_NAME + " = ? AND " +
+                                ContactsContract.Data.MIMETYPE + " = ?",
+                        new String[]{contact.getName(),
+                                ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE})
+                .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contactName.getText().toString())
+                .build());
 
-        if (!(contactName.getText().toString().equals(contact.getName())) || !(contactNumber.getText().toString().equals(contact.getPhone())) || image_Uri != null) {
-
-            ArrayList<ContentProviderOperation> cpo = new ArrayList<>();
-            //add edited number
+        //add edited photo, if photo exists
+        if (image_Uri != null) {
+            byte[] imageBytes = imageUriToBytes();
             cpo.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
                     .withSelection(ContactsContract.Data.DISPLAY_NAME + " = ? AND " +
                                     ContactsContract.Data.MIMETYPE + " = ?",
                             new String[]{contact.getName(),
-                                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE})
-                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, contactNumber.getText().toString())
+                                    ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE})
+                    .withValue(ContactsContract.CommonDataKinds.Photo.PHOTO, imageBytes)
                     .build());
-            //add edited name
-            cpo.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-                    .withSelection(ContactsContract.Data.DISPLAY_NAME + " = ? AND " +
-                                    ContactsContract.Data.MIMETYPE + " = ?",
-                            new String[]{contact.getName(),
-                                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE})
-                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contactName.getText().toString())
-                    .build());
-
-            //add edited photo, if photo exists
-            if (image_Uri != null) {
-                byte[] imageBytes = imageUriToBytes();
-                cpo.add(ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-                        .withSelection(ContactsContract.Data.DISPLAY_NAME + " = ? AND " +
-                                        ContactsContract.Data.MIMETYPE + " = ?",
-                                new String[]{contact.getName(),
-                                        ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE})
-                        .withValue(ContactsContract.CommonDataKinds.Photo.PHOTO, imageBytes)
-                        .build());
-            }
-
-
-            try {
-                getContentResolver().applyBatch(ContactsContract.AUTHORITY, cpo);
-                Toast.makeText(getApplicationContext(), "Saving contact...", Toast.LENGTH_LONG).show();
-                finish();
-            } catch (OperationApplicationException e) {
-                throw new RuntimeException(e);
-            } catch (RemoteException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), "You haven't edited the contact...", Toast.LENGTH_SHORT).show();
         }
 
+
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, cpo);
+            Toast.makeText(getApplicationContext(), "Saving contact...", Toast.LENGTH_LONG).show();
+            finish();
+        } catch (OperationApplicationException e) {
+            throw new RuntimeException(e);
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     private void openGalleryIntent() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
