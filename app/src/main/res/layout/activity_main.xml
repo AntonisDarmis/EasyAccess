@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".MainActivity">
 
     <androidx.cardview.widget.CardView
@@ -39,8 +39,9 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:text="REMINDERS"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="24sp"
+        android:textStyle="italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.857"
@@ -58,5 +59,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/remindersTitle"
         app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/imageView24"
+        android:layout_width="162dp"
+        android:layout_height="128dp"
+        android:background="@drawable/rounded_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.072"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.073"
+        app:srcCompat="@drawable/helpbot" />
+
+    <TextView
+        android:id="@+id/textView14"
+        android:layout_width="159dp"
+        android:layout_height="237dp"
+        android:text="Welcome back!\nWhenever you see me just press the voice button and say &quot;Explain&quot; and I will assist you!"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="italic"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.083"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView24"
+        app:layout_constraintVertical_bias="0.112" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

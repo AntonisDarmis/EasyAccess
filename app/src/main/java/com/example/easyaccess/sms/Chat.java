@@ -84,6 +84,71 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
 
     private String number;
 
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Chat.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(Chat.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality of a SMS conversation with a contact. By using the correct commands you can search for a " +
+                            "message in the conversation, send and receive messages and view the entire conversation.\n Say 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +231,7 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onError(int i) {
+                popupWindow.dismiss();
 
             }
 
@@ -181,6 +247,7 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                     Intent intent;
                     switch (parts[0]) {
                         case "scroll": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("down")) {
                                     recyclerPosition += 3;
@@ -197,29 +264,35 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                                 break;
                             }
                         }
+                        case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "search": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 searchMessages(parts[1]);
                             }
                             break;
                         }
                         case "next": {
+                            popupWindow.dismiss();
                             if (!matchPositions.isEmpty()) {
                                 navigateToNextMatch();
                                 break;
                             }
                         }
                         case "previous": {
+                            popupWindow.dismiss();
                             if (!matchPositions.isEmpty()) {
                                 navigateToPreviousMatch();
                                 break;
                             }
                         }
                         case "clear": {
+                            popupWindow.dismiss();
                             resultCounter.setVisibility(View.GONE);
                             count.setVisibility(View.GONE);
                             chatAdapter.clearHighlightedItem();
@@ -231,6 +304,7 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                             }, 100);
                         }
                         case "message": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 messageInput.setText(parts[1]);
                                 break;
@@ -238,6 +312,7 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "send": {
+                            popupWindow.dismiss();
                             if (!(messageInput.getText().toString().isEmpty())) {
                                 sendSmsMessage();
                                 messageInput.setText("");
@@ -246,22 +321,21 @@ public class Chat extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "help":{
+                            popupWindow.dismiss();
                             intent = new Intent(Chat.this, Help.class);
                             intent.putExtra("callingActivity","ChatActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the functionality of a SMS conversation with a contact. By using the correct commands you can search for a " +
-                                    "message in the conversation, send and receive messages and view the entire conversation.\n Say 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
                     }
+                    popupWindow.dismiss();
                 }
             }
 

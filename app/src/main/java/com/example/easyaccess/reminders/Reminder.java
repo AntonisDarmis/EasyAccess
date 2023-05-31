@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -54,6 +55,71 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
     private String callingActivity;
 
     private long reminderID;
+
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Reminder.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(Reminder.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality for storing a reminder. Through this activity, by using the correct commands,you can set the category," +
+                            "description, date, time and frequency of the reminder or edit an existing one.\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
 
     @Override
@@ -180,12 +246,13 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing...");
                 speechRecognizer.stopListening();
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -193,6 +260,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
@@ -202,25 +270,30 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             if (parts.length > 1) {
                                 switch (parts[1]) {
                                     case "category": {
+                                        popupWindow.dismiss();
                                         category.setText("");
                                         break;
                                     }
                                     case "time": {
+                                        popupWindow.dismiss();
                                         time.setText("");
                                         break;
                                     }
                                     case "date": {
+                                        popupWindow.dismiss();
                                         date.setText("");
                                         findViewById(R.id.radioButtonRepeat).setVisibility(View.VISIBLE);
                                         findViewById(R.id.radioButtonEveryday).setVisibility(View.VISIBLE);
                                         findViewById(R.id.radioButtonOnce).setVisibility(View.VISIBLE);
                                         break;
                                     }
-                                    case "description":{
+                                    case "description": {
+                                        popupWindow.dismiss();
                                         description.setText("");
                                     }
                                 }
                             } else {
+                                popupWindow.dismiss();
                                 category.setText("");
                                 time.setText("");
                                 date.setText("");
@@ -229,24 +302,28 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             break;
                         }
                         case "category": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 category.setText(capitalize(parts[1]));
                             }
                             break;
                         }
                         case "description": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 description.setText(parts[1]);
                             }
                             break;
                         }
                         case "year": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 date.setText(parts[1]);
                             }
                             break;
                         }
                         case "month": {
+                            popupWindow.dismiss();
                             if (parts.length > 1 && isMonth(parts[1])) {
                                 if (date.getText().toString().isEmpty()) {
                                     date.setText(format(parts[1]));
@@ -259,6 +336,7 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             break;
                         }
                         case "day": {
+                            popupWindow.dismiss();
                             if (parts.length > 1 && isDayOfMonth(parts[1]) && date.getText().toString().isEmpty()) {
                                 date.append(format(parts[1]));
                             } else if (parts.length > 1 && isDayOfMonth(parts[1])) {
@@ -267,54 +345,69 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
                             break;
                         }
                         case "time": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
-                                time.setText(format(parts[1]));
+                                if (parts[1].matches("^([01]?[0-9]|2[0-3])$")) {
+                                    time.setText(format(parts[1]));
+                                } else {
+                                    Toast.makeText(Reminder.this, "Invalid hour format!", Toast.LENGTH_SHORT).show();
+                                }
                             }
                             break;
                         }
                         case "minutes": {
-                            if (parts.length > 1 && !time.getText().toString().isEmpty()) {
-                                time.append(":" + format(parts[1]));
+                            popupWindow.dismiss();
+                            if (parts.length > 1 && !time.getText().toString().isEmpty() && time.getText().toString().length() == 2) {
+                                if (parts[1].matches("^[0-5][0-9]$")) {
+                                    String hours = time.getText().toString();
+                                    time.setText(hours + ":" + format(parts[1]));
+                                } else {
+                                    Toast.makeText(Reminder.this, "Invalid minutes format!", Toast.LENGTH_SHORT).show();
+                                }
                             } else {
                                 Toast.makeText(getApplicationContext(), "Please provide the hour first!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
                         case "store": {
+                            popupWindow.dismiss();
                             if (callingActivity.equals("Main")) {
                                 if (category.getText().toString().isEmpty() && time.getText().toString().isEmpty()) {
                                     Toast.makeText(getApplicationContext(), "Please input a category and a time at minimum.", Toast.LENGTH_SHORT).show();
                                 } else {
-                                    saveReminder();
-                                    Reminder.super.onBackPressed();
+                                    if(saveReminder()) {
+                                        Reminder.super.onBackPressed();
+                                    }
                                 }
                             } else {
-                                saveReminder();
-                                Reminder.super.onBackPressed();
+                                if(saveReminder()) {
+                                    Reminder.super.onBackPressed();
+                                }
                             }
                             break;
                         }
+                        case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
-                        case "help":{
+                        case "help": {
+                            popupWindow.dismiss();
                             intent = new Intent(Reminder.this, Help.class);
-                            intent.putExtra("callingActivity","ReminderActivity");
+                            intent.putExtra("callingActivity", "ReminderActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the functionality for storing a reminder. Through this activity, by using the correct commands,you can set the category," +
-                                    "description, date, time and frequency of the reminder or edit an existing one.\nSay 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
                     }
+                    popupWindow.dismiss();
                 }
             }
 
@@ -332,8 +425,6 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
     }
 
 
-
-
     private static final String capitalize(String str) {
 
         if (str == null || str.length() == 0) return str;
@@ -349,7 +440,8 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         return str;
     }
 
-    private void saveReminder() {
+    private boolean saveReminder() {
+        boolean correctFormats = true;
         //perform save operation logic
         // get selected radio button from radioGroup
         int selectedId = radioGroup.getCheckedRadioButtonId();
@@ -366,42 +458,53 @@ public class Reminder extends AppCompatActivity implements View.OnClickListener 
         //if date is empty and the user tries to save a reminder with option "ONCE" or user didnt provide the complete date do not proceed
         if (frequency.equals(Frequency.ONCE) && date.getText().toString().length() != 10) {
             Toast.makeText(getApplicationContext(), "Please provide a complete date!", Toast.LENGTH_SHORT).show();
-            return;
+            correctFormats = false;
         }
 
         if (date.getText().toString().length() == 2 && !(isDayOfMonth(date.getText().toString()))) {
             Toast.makeText(getApplicationContext(), "Please provide a correct day of month", Toast.LENGTH_SHORT).show();
-            return;
+            correctFormats = false;
         }
 
         if (!in24HourFormat(time.getText().toString()) || time.getText().toString().isEmpty()) {
             Toast.makeText(getApplicationContext(), "Incorrect time provided!", Toast.LENGTH_SHORT).show();
-            return;
+            correctFormats = false;
         }
 
-
-        databaseHelper = new ReminderDatabaseHelper(getApplicationContext());
-        ReminderModel reminder;
-        if (frequency.equals(Frequency.EVERY_DAY)) {
-            reminder = new ReminderModel(category.getText().toString(), "", time.getText().toString(), description.getText().toString(), frequency);
-        } else {
-            reminder = new ReminderModel(category.getText().toString(), date.getText().toString(), time.getText().toString(), description.getText().toString(), frequency);
+        if(time.getText().toString().isEmpty() || category.getText().toString().isEmpty()){
+            Toast.makeText(getApplicationContext(), "Time or category are empty!", Toast.LENGTH_SHORT).show();
+            correctFormats = false;
         }
 
-        long successful;
-        if (callingActivity.equals("Main")) {
-            successful = databaseHelper.addReminder(reminder);
-        } else {
-            successful = databaseHelper.editReminder(reminderID, reminder);
-        }
-        //check if it was successful
-        if (successful > 0) {
-            Toast.makeText(getApplicationContext(), "Reminder set successfully!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
-        }
+        if(correctFormats) {
+            databaseHelper = new ReminderDatabaseHelper(getApplicationContext());
+            ReminderModel reminder;
+            if (frequency.equals(Frequency.EVERY_DAY)) {
+                reminder = new ReminderModel(category.getText().toString(), "", time.getText().toString(), description.getText().toString(), frequency);
+            } else {
+                reminder = new ReminderModel(category.getText().toString(), date.getText().toString(), time.getText().toString(), description.getText().toString(), frequency);
+            }
 
-        databaseHelper.close();
+            long successful;
+            if (callingActivity.equals("Main")) {
+                successful = databaseHelper.addReminder(reminder);
+            } else {
+                successful = databaseHelper.editReminder(reminderID, reminder);
+            }
+            //check if it was successful
+            if (successful > 0) {
+                Toast.makeText(getApplicationContext(), "Reminder set successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
+            }
+
+            databaseHelper.close();
+            return true;
+        }
+        else{
+            Toast.makeText(this, "Please check if all inputs are in the correct format", Toast.LENGTH_SHORT).show();
+            return false;
+        }
     }
 
 

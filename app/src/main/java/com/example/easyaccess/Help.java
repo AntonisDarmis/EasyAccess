@@ -8,10 +8,14 @@ import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +41,8 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
     private String activity;
 
     private int recyclerPosition = 0;
+    private PopupWindow popupWindow;
+    private TextView messageTextView;
 
 
     @Override
@@ -88,9 +94,9 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
         activityCommands.put("ChoiceActivity", Arrays.asList("Directions : Opens the directions activity", "Categories : Opens the categories activity",
                 "Location : Opens maps with current location"));
 
-        activityCommands.put("CategoriesActivity", Arrays.asList("Scroll down/up : Scrolls the category list accordingly", "Back : Go back", "Route [address or area] : " +
+        activityCommands.put("CategoriesActivity", Arrays.asList("Scroll down/up : Scrolls the category list accordingly", "Back : Go back", "Destination [address or area] : " +
                 "Provide the area you want view the categories for, or leave empty and view based on your current location", "[SubCategory] : By saying the title" +
-                "of any subcategory from the Categories list, it is marked as checked or unchecked(if it is checked already"));
+                "of any subcategory from the Categories list, it is marked as checked or unchecked(if it is checked already","Open : Opens the map"));
 
         activityCommands.put("DirectionsActivity", Arrays.asList("Destination [address or area] : Sets the destination for which directions will be displayed",
                 "Start [address/area or empty] : ", "Transport [car/public transport/on foot] : Sets the means of transport",
@@ -139,12 +145,13 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing...");
                 speechRecognizer.stopListening();
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -152,22 +159,27 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     //textView.setText(command);
                     Intent intent;
                     switch (parts[0]) {
+                        case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "read": {
+                            popupWindow.dismiss();
                             isTTSInitialized = true;
                             readAllCommands();
                             break;
                         }
                         case "scroll": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("down")) {
                                     recyclerPosition += 3;
@@ -185,6 +197,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                     }
+                    popupWindow.dismiss();
                 }
             }
 
@@ -267,6 +280,19 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
             textToSpeech.shutdown();
             setTTS();
         } else {
+            View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);
+
+            // Create the popup window
+            popupWindow = new PopupWindow(popupView,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    true);
+
+            // Find the TextView in the popup layout
+            messageTextView = popupView.findViewById(R.id.messageTextView);
+
+            // Show the popup window at the center of the screen
+            popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
             speechRecognizer.startListening(intentRecognizer);
         }
     }

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".maps.CategoriesActivity">
 
     <ImageView
@@ -50,9 +50,10 @@
     <TextView
         android:id="@+id/categoriesRoute"
         android:layout_width="386dp"
-        android:layout_height="51dp"
+        android:layout_height="53dp"
         android:background="@drawable/rounded_background"
         android:hint='Say "Destination" and provide the address or area or leave empty to set current location'
+        android:textColor="@color/black"
         android:textSize="19sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -67,7 +68,7 @@
         android:layout_height="48dp"
         android:text="Specify the categories you want \nto search for:"
         android:textAlignment="viewStart"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

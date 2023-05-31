@@ -30,6 +30,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 import com.example.easyaccess.calls.Calls;
 import com.example.easyaccess.reminders.Reminder;
@@ -49,6 +50,71 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
     private TextView recipient;
 
     private EditText input;
+
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(NewSMS.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(NewSMS.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality for sending an SMS message to a new number." +
+                            "\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
 
     @Override
@@ -98,7 +164,7 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -113,21 +179,25 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
                     Intent intent;
                     switch (parts[0]) {
                         case "clear": {
+                            popupWindow.dismiss();
                             input.setText("");
                             break;
                         }
                         case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "message": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 input.setText(parts[1]);
                             }
                             break;
                         }
                         case "send": {
+                            popupWindow.dismiss();
                             if (input.getText().length() != 0) {
                                 sendSMS();
                                 finish();
@@ -135,21 +205,21 @@ public class NewSMS extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                         case "help":{
+                            popupWindow.dismiss();
                             intent = new Intent(NewSMS.this, Help.class);
                             intent.putExtra("callingActivity","NewSMSActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the functionality for sending an SMS message to a new number.\nSay 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
                     }
+                    popupWindow.dismiss();
                 }
             }
 

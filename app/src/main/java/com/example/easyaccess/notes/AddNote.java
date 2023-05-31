@@ -6,8 +6,10 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -46,6 +49,70 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
     private String callingActivity;
 
     private long noteID;
+
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(AddNote.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(AddNote.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality for creating and editing notes.\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
     private static String capitalize(String str) {
 
@@ -103,13 +170,14 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing...");
                 speechRecognizer.stopListening();
 
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -117,16 +185,20 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     Intent intent;
                     switch (parts[0]) {
+                        case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "clear": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("title")) {
                                     title.setText("");
@@ -138,12 +210,14 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "title": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 title.setText(capitalize(parts[1]));
                             }
                             break;
                         }
                         case "note": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 findViewById(R.id.textView12).setVisibility(View.GONE);
                                 if (description.getText().toString().isEmpty()) {
@@ -155,12 +229,14 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "new": {
+                            popupWindow.dismiss();
                             if (parts.length > 1 && parts[1].equals("line")) {
                                 description.append("\n");
                             }
                             break;
                         }
                         case "store": {
+                            popupWindow.dismiss();
                             if ((title.getText().toString().isEmpty() && description.getText().toString().isEmpty()) || title.getText().toString().length() > 12) {
                                 Toast.makeText(getApplicationContext(), "Please provide a correct title and a description ", Toast.LENGTH_SHORT).show();
                             } else {
@@ -184,6 +260,7 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "help": {
+                            popupWindow.dismiss();
                             intent = new Intent(AddNote.this, Help.class);
                             intent.putExtra("callingActivity", "AddNoteActivity");
                             startActivity(intent);
@@ -191,11 +268,9 @@ public class AddNote extends AppCompatActivity implements View.OnClickListener {
                         }
 
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the functionality for creating and editing notes.\nSay 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }

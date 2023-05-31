@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".notes.AllNotes">
 
     <ImageView
@@ -63,9 +63,8 @@
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_background"
         android:text="All notes"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="24sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"

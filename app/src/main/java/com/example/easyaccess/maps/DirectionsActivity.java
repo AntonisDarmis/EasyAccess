@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -21,9 +24,11 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.ExplanationDialogHelper;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -42,10 +47,75 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
     private String transportOption;
 
+
     private String command;
 
     private PopupWindow popupWindow;
     private TextView messageTextView;
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(DirectionsActivity.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(DirectionsActivity.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality of getting and viewing directions to a certain address or area." +
+                            "\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,12 +158,13 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing");
                 speechRecognizer.stopListening();
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -101,38 +172,49 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     switch (parts[0]) {
+                        case "buck":
+                        case "back":{
+                            popupWindow.dismiss();
+                            finish();
+                            break;
+                        }
                         case "destination": {
-                            ((TextView) findViewById(R.id.route)).setText(parts[0].substring(0, 1).toUpperCase(Locale.ROOT) + parts[0].substring(1));
+                            popupWindow.dismiss();
+                            if (parts.length > 1) {
+                                ((TextView) findViewById(R.id.route)).setText(parts[1].substring(0, 1).toUpperCase(Locale.ROOT) + parts[1].substring(1));
+                            }
                             break;
                         }
                         case "start": {
-                            ((TextView) findViewById(R.id.start)).setText(parts[0].substring(0, 1).toUpperCase(Locale.ROOT) + parts[0].substring(1));
+                            popupWindow.dismiss();
+                            if (parts.length > 1) {
+                                ((TextView) findViewById(R.id.start)).setText(parts[1].substring(0, 1).toUpperCase(Locale.ROOT) + parts[1].substring(1));
+                            }
                             break;
                         }
                         case "transport": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
-                                switch (parts[1]) {
-                                    case "car": {
-                                        transportOptions.check(R.id.radioButton_car);
-                                        break;
-                                    }
-                                    case "public transport": {
-                                        transportOptions.check(R.id.radioButton_public_transport);
-                                        break;
-                                    }
-                                    case "on foot": {
-                                        transportOptions.check(R.id.radioButton_on_foot);
-                                        break;
-                                    }
+                                if (parts[1].equals("car")) {
+                                    transportOptions.check(R.id.radioButton_car);
+                                    setRouteOptions();
+                                } else if (parts[1].equals("public transport")) {
+                                    transportOptions.check(R.id.radioButton_public_transport);
+                                    setRouteOptions();
+                                } else if (parts[1].equals("on foot")) {
+                                    transportOptions.check(R.id.radioButton_on_foot);
+                                    setRouteOptions();
                                 }
-                                setRouteOptions();
                             }
+                            break;
                         }
                         case "directions": {
+                            popupWindow.dismiss();
                             if (transportOption.equals("car")) {
                                 openDestinationByCar();
                             } else if (transportOption.equals("public transport")) {
@@ -142,9 +224,18 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                             }
                             break;
                         }
+                        case "explain": {
+                            popupWindow.dismiss();
+                            voiceButton.setEnabled(false);
+                            showExplanationDialog();
+                            voiceButton.setEnabled(true);
+                            break;
+                        }
                     }
+                    popupWindow.dismiss();
                     // set check boxes based on command
-                    if (transportOption.equals("car")) {
+                    if (transportOption != null) {
+                        popupWindow.dismiss();
                         switch (command) {
                             case "avoid tolls": {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).isChecked()) {
@@ -154,7 +245,7 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                                 }
                                 break;
                             }
-                            case "avoid motorways": {
+                            case "avoid motorway": {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).isChecked()) {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(false);
                                 } else {
@@ -162,21 +253,12 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                                 }
                                 break;
                             }
-                            case "avoid ferries": {
+                            case "avoid ferry": {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).isChecked()) {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(false);
                                 } else {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(true);
                                 }
-                                break;
-                            }
-                            case "explain": {
-                                voiceButton.setEnabled(false);
-                                ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                                String dialogMessage = "This activity serves the functionality of getting and viewing directions to a certain address or area.\nSay 'HELP' to view the available commands!";
-                                dialogHelper.showExplanationDialog(dialogMessage);
-                                dialogHelper.shutdown();
-                                voiceButton.setEnabled(true);
                                 break;
                             }
                         }
@@ -205,8 +287,8 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
             transportOption = "car";
             routeOptions.setVisibility(View.VISIBLE);
             ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setText("Avoid tolls");
-            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setText("Avoid motorways");
-            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setText("Avoid ferries");
+            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setText("Avoid motorway");
+            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setText("Avoid ferry");
         } else if (selectedRadioButton.getText().toString().equals("Public transport")) {
             transportOption = "public transport";
             routeOptions.setVisibility(View.GONE);
@@ -240,21 +322,30 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
         boolean avoidMotorways = option2.isChecked();
         boolean avoidFerries = option3.isChecked();
 
-        if (avoidTolls && avoidMotorways && avoidFerries) {
-            uri += "&avoid=tolls|highways|ferries";
-        } else if (avoidTolls && avoidMotorways) {
-            uri += "&avoid=tolls|highways";
-        } else if (avoidTolls && avoidFerries) {
-            uri += "&avoid=tolls|ferries";
-        } else if (avoidMotorways && avoidFerries) {
-            uri += "&avoid=highways|ferries";
-        } else if (avoidTolls) {
-            uri += "&avoid=tolls";
-        } else if (avoidMotorways) {
-            uri += "&avoid=highways";
-        } else if (avoidFerries) {
-            uri += "&avoid=ferries";
+        StringBuilder avoidParams = new StringBuilder();
+
+        if (avoidTolls) {
+            avoidParams.append("tolls");
         }
+
+        if (avoidMotorways) {
+            if (avoidParams.length() > 0) {
+                avoidParams.append("|");
+            }
+            avoidParams.append("highways");
+        }
+
+        if (avoidFerries) {
+            if (avoidParams.length() > 0) {
+                avoidParams.append("|");
+            }
+            avoidParams.append("ferries");
+        }
+
+        if (avoidParams.length() > 0) {
+            uri += "&avoid=" + avoidParams.toString();
+        }
+
 
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
         intent.setPackage("com.google.android.apps.maps");  // Specify the package to ensure it opens in Maps app

@@ -24,12 +24,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
-import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.NumberConverter;
 import com.example.easyaccess.R;
-import com.example.easyaccess.calls.Calls;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +53,71 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
 
     private String command;
     private int recyclerPosition = 0;
+
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(AllReminders.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(AllReminders.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves the functionality for editing and viewing reminders. Through this activity, by using the correct commands, you can " +
+                            "edit and view a specific reminder.\nSay 'HELP' to view the available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -99,12 +161,13 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Error occurred");
                 speechRecognizer.stopListening();
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -112,17 +175,21 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
                     //textView.setText(command);
                     Intent intent;
                     switch (parts[0]) {
+                        case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "scroll": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("down")) {
                                     recyclerPosition += 3;
@@ -140,6 +207,7 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                             }
                         }
                         case "edit": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 /* handle logic based on Frequency type
                                 /for EVERY_DAY -> user can edit Category,Description, time
@@ -162,6 +230,7 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                             break;
                         }
                         case "delete": {
+                            popupWindow.dismiss();
                             //handle delete logic -> delete reminder by ID and display custom popup box to ask if user is sure and start recognizer
                             if (parts.length > 1) {
 
@@ -181,23 +250,22 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
                             }
                             break;
                         }
-                        case "help":{
+                        case "help": {
+                            popupWindow.dismiss();
                             intent = new Intent(AllReminders.this, Help.class);
-                            intent.putExtra("callingActivity","AllRemindersActivity");
+                            intent.putExtra("callingActivity", "AllRemindersActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the functionality for editing and viewing reminders. Through this activity, by using the correct commands, you can " +
-                                    "edit and view a specific reminder.\nSay 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
                     }
+                    popupWindow.dismiss();
                 }
             }
 
@@ -212,8 +280,6 @@ public class AllReminders extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-
-
 
 
     @Override

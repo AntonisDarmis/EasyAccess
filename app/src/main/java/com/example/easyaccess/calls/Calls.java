@@ -38,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
 import com.example.easyaccess.LeveshteinDistance;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
 import java.text.Normalizer;
@@ -74,6 +75,68 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
     private boolean isOnDeleteStage = false;
 
     private String deleteContactName;
+
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Calls.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(Calls.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+
+                    String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
+                            "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
 
     private static String stripAccents(String s) {
         s = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -191,13 +254,14 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing...");
                 speechRecognizer.stopListening();
 
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -205,6 +269,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     String[] parts = command.split(" ", 2);
                     Log.d("VOICE COMMAND IN ADD", command);
@@ -214,12 +279,14 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         case "create": {
                             intent = new Intent(Calls.this, AddContact.class);
                             intent.putExtra("Request", "create");
+                            popupWindow.dismiss();
                             startActivity(intent);
                             break;
                         }
                         case "edit": {
                             //PUT EXTRA contact name in Intent!
                             if (parts.length > 1) {
+                                popupWindow.dismiss();
                                 intent = new Intent(Calls.this, AddContact.class);
                                 Contact contact;
                                 contact = findByName(contactList, parts[1]);
@@ -235,6 +302,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "view": {
+                            popupWindow.dismiss();
                             //perform Contact filtering
                             if (parts.length > 1) {
                                 parts[1] = parts[1].replaceAll("[^a-z0-9]", "");
@@ -246,6 +314,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         }
 
                         case "delete": {
+                            popupWindow.dismiss();
                             //delete contact logic, ask for confirmation!
                             if (parts.length > 1) {
                                 parts[1] = parts[1].substring(0, 1).toUpperCase() + parts[1].substring(1);
@@ -266,15 +335,18 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                         }
                         case "buck":
                         case "back": {
+                            popupWindow.dismiss();
                             finish();
                             break;
                         }
                         case "clear": {
+                            popupWindow.dismiss();
                             filter.setText("");
                             getContacts();
                             break;
                         }
                         case "scroll": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("down")) {
                                     recyclerPosition += 3;
@@ -292,6 +364,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                         case "call": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 Intent phone_intent = new Intent(Intent.ACTION_CALL);
                                 parts[1] = parts[1].replaceAll("[^a-z0-9]", "");
@@ -307,6 +380,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             break;
                         }
                         case "recent": {
+                            popupWindow.dismiss();
                             if (parts.length > 1) {
                                 Contact contact = findByName(contactList, parts[1]);
                                 if (contact != null) {
@@ -324,22 +398,21 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                         case "help": {
+                            popupWindow.dismiss();
                             intent = new Intent(Calls.this, Help.class);
                             intent.putExtra("callingActivity", "CallsActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves the base of the contacts functionality. Through this activity, by using the correct commands, you can navigate through " +
-                                    "all of the contacts' functionalities, such as viewing contacts ,editing and creating contacts and call history(or with a contact).\nSay 'HELP' to view the available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
                         case "yes": {
+                            popupWindow.dismiss();
                             if (isOnDeleteStage) {
                                 if (deleteContact(deleteContactName)) {
                                     Toast.makeText(Calls.this, "Contact deleted successfully", Toast.LENGTH_SHORT).show();
@@ -350,6 +423,7 @@ public class Calls extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                     }
+                    popupWindow.dismiss();
                 }
 
             }

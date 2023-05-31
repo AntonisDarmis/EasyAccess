@@ -4,25 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".Help">
 
     <TextView
         android:id="@+id/callingActivity"
-        android:layout_width="345dp"
-        android:layout_height="57dp"
+        android:layout_width="349dp"
+        android:layout_height="68dp"
         android:background="@android:drawable/dialog_holo_light_frame"
         android:fontFamily="monospace"
         android:text="The left column displays the list of commands the user can provide based on the current activity. Brackets act as user input. Say 'READ' to hear the commands."
         android:textColor="@color/black"
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.016" />
+        app:layout_constraintVertical_bias="0.0" />
 
     <ListView
         android:id="@+id/commands"
@@ -66,7 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Click microphone to stop text to speech!"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -77,7 +77,7 @@
         android:id="@+id/imageView10"
         android:layout_width="44dp"
         android:layout_height="49dp"
-        android:background="@color/white"
+        android:background="@drawable/rounded_background"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -85,5 +85,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.017"
-        app:srcCompat="@drawable/helpbot" />
+        app:srcCompat="@drawable/helpbotresized" />
 </androidx.constraintlayout.widget.ConstraintLayout>

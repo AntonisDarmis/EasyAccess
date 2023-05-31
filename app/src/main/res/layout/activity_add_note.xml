@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".notes.AddNote">
 
     <ImageView
@@ -69,8 +69,8 @@
 
     <EditText
         android:id="@+id/notes_note"
-        android:layout_width="384dp"
-        android:layout_height="329dp"
+        android:layout_width="386dp"
+        android:layout_height="331dp"
         android:background="@android:color/holo_orange_light"
         android:clickable="false"
         android:ems="10"
@@ -91,6 +91,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Maximum of 12 characters."
+        android:textColor="@color/white"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -4,18 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_blue"
+    android:background="@drawable/dark_gradient"
     tools:context=".maps.ChoiceActivity">
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-condensed-light"
+        android:fontFamily="sans-serif"
         android:text="Available options"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:textSize="28sp"
-        android:textStyle="bold|italic"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

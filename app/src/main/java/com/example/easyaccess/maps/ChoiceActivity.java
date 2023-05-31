@@ -13,8 +13,11 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -22,11 +25,13 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.easyaccess.ExplanationDialogHelper;
 import com.example.easyaccess.Help;
+import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
 import java.util.ArrayList;
@@ -43,10 +48,77 @@ public class ChoiceActivity extends AppCompatActivity implements View.OnClickLis
     private PopupWindow popupWindow;
     private TextView messageTextView;
 
+    private TextToSpeech textToSpeech;
+    private AlertDialog alertDialog;
+    private TextView dialogTextView;
+
+
+    private void showExplanationDialog() {
+        // Initialize TextToSpeech
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Set the language to the appropriate locale
+                    textToSpeech.setLanguage(Locale.US);
+
+                    // Create and set the UtteranceProgressListener
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            // TTS started speaking, if needed
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            // TTS finished speaking, dismiss the dialog
+                            alertDialog.dismiss();
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            // TTS encountered an error, if needed
+                        }
+
+                        @Override
+                        public void onRangeStart(String utteranceId, int start, int end, int frame) {
+                            // Update the dialog text as TTS speaks each word
+                            String dialogText = dialogTextView.getText().toString();
+                            dialogTextView.setText(dialogText);
+                        }
+                    });
+
+                    // Create the dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ChoiceActivity.this);
+                    builder.setCancelable(false);
+
+                    // Set the dialog view to a custom layout
+                    LayoutInflater inflater = LayoutInflater.from(ChoiceActivity.this);
+                    View dialogView = inflater.inflate(R.layout.dialog_layout, null);
+                    builder.setView(dialogView);
+
+                    // Get the TextView from the custom layout
+                    dialogTextView = dialogView.findViewById(R.id.dialogTextView);
+
+                    // Show the dialog
+                    alertDialog = builder.create();
+                    alertDialog.show();
+
+                    // Speak the dialog message using TextToSpeech
+                    String dialogMessage = "This activity serves as the base for maps functionalities.\nSay 'HELP' to view available commands!";
+                    textToSpeech.speak(dialogMessage, TextToSpeech.QUEUE_FLUSH, null, "dialog_utterance");
+                    dialogTextView.setText(dialogMessage);
+                }
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choice);
+
+
 
         voiceButton = findViewById(R.id.choice_image);
         voiceButton.setOnClickListener(this);
@@ -77,12 +149,13 @@ public class ChoiceActivity extends AppCompatActivity implements View.OnClickLis
 
             @Override
             public void onEndOfSpeech() {
+                messageTextView.setText("Processing");
                 speechRecognizer.stopListening();
             }
 
             @Override
             public void onError(int i) {
-
+                popupWindow.dismiss();
             }
 
             @Override
@@ -90,41 +163,51 @@ public class ChoiceActivity extends AppCompatActivity implements View.OnClickLis
                 ArrayList<String> matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 if (matches != null) {
                     command = matches.get(0);
+                    messageTextView.setText(command);
                     command = command.toLowerCase(Locale.ROOT);
                     Log.d("VOICE COMMAND IN CREATE", command);
                     String[] parts = command.split(" ", 3);
                     Intent intent;
                     switch (parts[0]) {
                         case "directions": {
+                            popupWindow.dismiss();
                             intent = new Intent(ChoiceActivity.this, DirectionsActivity.class);
                             startActivity(intent);
                             break;
                         }
                         case "categories": {
+                            popupWindow.dismiss();
                             intent = new Intent(ChoiceActivity.this, CategoriesActivity.class);
                             startActivity(intent);
                             break;
                         }
                         case "location": {
-                            getLocation();
+                            popupWindow.dismiss();
+                            openMaps();
                             break;
                         }
                         case "help": {
+                            popupWindow.dismiss();
                             intent = new Intent(ChoiceActivity.this, Help.class);
                             intent.putExtra("callingActivity", "ChoiceActivity");
                             startActivity(intent);
                             break;
                         }
                         case "explain": {
+                            popupWindow.dismiss();
                             voiceButton.setEnabled(false);
-                            ExplanationDialogHelper dialogHelper = new ExplanationDialogHelper(getApplicationContext());
-                            String dialogMessage = "This activity serves as the base for for maps functionalities.\nSay 'HELP' to view available commands!";
-                            dialogHelper.showExplanationDialog(dialogMessage);
-                            dialogHelper.shutdown();
+                            showExplanationDialog();
                             voiceButton.setEnabled(true);
                             break;
                         }
+                        case "buck":
+                        case "back":{
+                            popupWindow.dismiss();
+                            finish();
+                            break;
+                        }
                     }
+                    popupWindow.dismiss();
                 }
             }
 
@@ -140,54 +223,40 @@ public class ChoiceActivity extends AppCompatActivity implements View.OnClickLis
         });
     }
 
-    private void getLocation() {
-        // Request location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            finish();
 
-            return;
+
+
+    private void openMaps() {
+        Location location = getCurrentLocation();
+        Uri uri = Uri.parse("geo:0,0?");
+        if (location != null) {
+            Uri gmmIntentUri = Uri.parse("geo:" + location.getLatitude() + "," + location.getLongitude());
+
+            // Create an Intent to open Google Maps with the user's current location
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+            mapIntent.setPackage("com.google.android.apps.maps");
+            // Start the activity
+            ChoiceActivity.this.startActivity(mapIntent);
         }
-        // Get the location manager
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        // Request a single location update
-        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                // Handle the location update
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                openMaps(latitude + "," + longitude);
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-            }
-        }, null);
-    }
-
-    private void openMaps(String location) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:" + location));
-        // Check if there is an app available to handle the intent
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> activities = packageManager.queryIntentActivities(intent, 0);
-        boolean isIntentSafe = activities.size() > 0;
-
-        // Start the activity if there is an app available
-        if (isIntentSafe) {
-            startActivity(intent);
-        } else {
-            Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_SHORT).show();
+        else{
+            Toast.makeText(this, "No location provided", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private Location getCurrentLocation() {
+        LocationManager locationManager = (LocationManager) ChoiceActivity.this.getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager != null) {
+            if (ActivityCompat.checkSelfPermission(ChoiceActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(ChoiceActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                // Get the last known location
+                return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+        }
+        return null;
+    }
+
+
+
 
     @Override
     public void onClick(View view) {
