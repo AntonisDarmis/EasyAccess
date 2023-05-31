@@ -46,7 +46,7 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
     private LinearLayout routeOptions;
 
-    private String transportOption;
+    private String transportOption = "";
 
 
     private String command;
