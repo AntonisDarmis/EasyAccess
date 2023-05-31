@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -283,6 +284,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
             isTTSInitialized = false;
             textToSpeech.stop();
             textToSpeech.shutdown();
+            Toast.makeText(Help.this, "Text to speech stopped!", Toast.LENGTH_SHORT).show();
             setTTS();
         } else {
             View popupView = getLayoutInflater().inflate(R.layout.popup_layout, null);

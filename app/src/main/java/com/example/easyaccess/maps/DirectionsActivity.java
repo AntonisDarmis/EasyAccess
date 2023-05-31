@@ -179,7 +179,7 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                     Log.d("VOICE COMMAND IN ADD", command);
                     switch (parts[0]) {
                         case "buck":
-                        case "back":{
+                        case "back": {
                             popupWindow.dismiss();
                             finish();
                             break;
@@ -202,12 +202,20 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                             popupWindow.dismiss();
                             if (parts.length > 1) {
                                 if (parts[1].equals("car")) {
+                                    transportOption = "car";
                                     transportOptions.check(R.id.radioButton_car);
+                                    findViewById(R.id.textView19).setVisibility(View.GONE);
                                     setRouteOptions();
                                 } else if (parts[1].equals("public transport")) {
+                                    transportOption = "public transport";
                                     transportOptions.check(R.id.radioButton_public_transport);
+                                    findViewById(R.id.textView19).setVisibility(View.VISIBLE);
+                                    routeOptions.setVisibility(View.GONE);
                                     setRouteOptions();
                                 } else if (parts[1].equals("on foot")) {
+                                    transportOption = "on foot";
+                                    routeOptions.setVisibility(View.GONE);
+                                    findViewById(R.id.textView19).setVisibility(View.GONE);
                                     transportOptions.check(R.id.radioButton_on_foot);
                                     setRouteOptions();
                                 }
@@ -216,12 +224,16 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                         }
                         case "directions": {
                             popupWindow.dismiss();
-                            if (transportOption.equals("car")) {
-                                openDestinationByCar();
-                            } else if (transportOption.equals("public transport")) {
-                                openDestinationByPublicTransport();
-                            } else if (transportOption.equals("on foot")) {
-                                openDestinationByWalking();
+                            if (transportOption != null) {
+                                if (transportOption.equals("car")) {
+                                    openDestinationByCar();
+                                } else if (transportOption.equals("public transport")) {
+                                    openDestinationByPublicTransport();
+                                } else if (transportOption.equals("on foot")) {
+                                    openDestinationByWalking();
+                                }
+                            } else {
+                                Toast.makeText(DirectionsActivity.this, "Please select a transport option first!", Toast.LENGTH_SHORT).show();
                             }
                             break;
                         }
@@ -232,43 +244,42 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                             voiceButton.setEnabled(true);
                             break;
                         }
-                        case "help":{
+                        case "help": {
                             popupWindow.dismiss();
                             Intent intent = new Intent(DirectionsActivity.this, Help.class);
                             intent.putExtra("callingActivity", "DirectionsActivity");
                             startActivity(intent);
                             break;
                         }
-                    }
-                    popupWindow.dismiss();
-                    // set check boxes based on command
-                    if (transportOption != null) {
-                        popupWindow.dismiss();
-                        switch (command) {
-                            case "avoid tolls": {
+                        case "avoid tolls": {
+                            if (transportOption != null && transportOption.equals("car")) {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).isChecked()) {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(false);
                                 } else {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(true);
                                 }
-                                break;
                             }
-                            case "avoid motorway": {
+                            break;
+                        }
+                        case "avoid motorway": {
+                            if (transportOption != null && transportOption.equals("car")) {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).isChecked()) {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(false);
                                 } else {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(true);
                                 }
-                                break;
                             }
-                            case "avoid ferry": {
+                            break;
+                        }
+                        case "avoid ferry": {
+                            if (transportOption != null && transportOption.equals("car")) {
                                 if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).isChecked()) {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(false);
                                 } else {
                                     ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(true);
                                 }
-                                break;
                             }
+                            break;
                         }
                     }
                 }
@@ -294,9 +305,9 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
         if (selectedRadioButton.getText().toString().equals("Car")) {
             transportOption = "car";
             routeOptions.setVisibility(View.VISIBLE);
-            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setText("Avoid tolls");
-            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setText("Avoid motorway");
-            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setText("Avoid ferry");
+//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setText("Avoid tolls");
+//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setText("Avoid motorway");
+//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setText("Avoid ferry");
         } else if (selectedRadioButton.getText().toString().equals("Public transport")) {
             transportOption = "public transport";
             routeOptions.setVisibility(View.GONE);
@@ -310,16 +321,16 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
 
 
     private void openDestinationByCar() {
-        String start = ((TextView) findViewById(R.id.start)).getText().toString();
+        TextView start = findViewById(R.id.start);
         String destination = ((TextView) findViewById(R.id.route)).getText().toString();
         String uri = "";
-        if (start.isEmpty()) {
+        if (start.getText().toString().isEmpty()) {
             uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + destination;
         } else {
-            uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=" + start + "&destination=" + destination;
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=" + start.getText().toString() + "&destination=" + destination;
         }
 
-        Log.d("START", start);
+        Log.d("START", start.getText().toString());
         Log.d("DESTINATION", destination);
 
         CheckBox option1, option2, option3;
@@ -372,13 +383,13 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void openDestinationByPublicTransport() {
-        String start = ((TextView) findViewById(R.id.start)).getText().toString();
+        TextView start = findViewById(R.id.start);
         String destination = ((TextView) findViewById(R.id.route)).getText().toString();
         String uri = "";
-        if (start.isEmpty()) {
+        if (start.getText().toString().isEmpty()) {
             uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=" + destination;
         } else {
-            uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=" + start + "&destination=" + destination;
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=" + start.getText().toString() + "&destination=" + destination;
         }
         uri += "&transit_routing_preference=accessible";
         // Create the intent to open Maps
@@ -399,13 +410,13 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void openDestinationByWalking() {
-        String start = ((TextView) findViewById(R.id.start)).getText().toString();
+        TextView start = findViewById(R.id.start);
         String destination = ((TextView) findViewById(R.id.route)).getText().toString();
         String uri = "";
-        if (start.isEmpty()) {
+        if (start.getText().toString().isEmpty()) {
             uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=" + destination;
         } else {
-            uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + start + "&destination=" + destination;
+            uri = "https://www.google.com/maps/dir/?api=1&travelmode=walking&origin=" + start.getText().toString() + "&destination=" + destination;
         }
         uri += "&dir_action=w";
         // Create the intent to open Maps
