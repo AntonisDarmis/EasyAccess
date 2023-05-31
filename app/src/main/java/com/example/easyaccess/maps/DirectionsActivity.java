@@ -28,6 +28,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.easyaccess.ExplanationDialogHelper;
+import com.example.easyaccess.Help;
 import com.example.easyaccess.MainActivity;
 import com.example.easyaccess.R;
 
@@ -229,6 +230,13 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                             voiceButton.setEnabled(false);
                             showExplanationDialog();
                             voiceButton.setEnabled(true);
+                            break;
+                        }
+                        case "help":{
+                            popupWindow.dismiss();
+                            Intent intent = new Intent(DirectionsActivity.this, Help.class);
+                            intent.putExtra("callingActivity", "DirectionsActivity");
+                            startActivity(intent);
                             break;
                         }
                     }

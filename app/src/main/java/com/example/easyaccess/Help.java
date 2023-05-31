@@ -228,6 +228,9 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
                 @Override
                 public void run() {
                     for (int i = 0; i < commands.size(); i++) {
+                        if(!isTTSInitialized){
+                            break;
+                        }
                         String helpCommand = commands.get(i);
                         String utteranceId = String.valueOf(System.currentTimeMillis());
                         textToSpeech.speak(helpCommand, TextToSpeech.QUEUE_ADD, null, utteranceId);
@@ -241,6 +244,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
                             }
                         }
                     }
+                    isTTSInitialized = false;
                 }
             }).start();
         }
@@ -277,6 +281,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
     public void onClick(View view) {
         if (isTTSInitialized) {
             isTTSInitialized = false;
+            textToSpeech.stop();
             textToSpeech.shutdown();
             setTTS();
         } else {
