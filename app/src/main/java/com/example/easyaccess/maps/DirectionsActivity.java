@@ -251,37 +251,66 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
                             startActivity(intent);
                             break;
                         }
-                        case "avoid tolls": {
-                            if (transportOption != null && transportOption.equals("car")) {
-                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).isChecked()) {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(false);
-                                } else {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(true);
+                        case "avoid": {
+                            if (parts.length > 1 && transportOption != null && transportOption.equals("car")) {
+                                if (parts[1].equals("tolls")) {
+                                    if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).isChecked()) {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(false);
+                                    } else {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(true);
+                                    }
+                                } else if (parts[1].equals("motorway")) {
+                                    if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).isChecked()) {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(false);
+                                    } else {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(true);
+                                    }
+                                }
+                                else if (parts[1].equals("ferry")){
+                                    if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).isChecked()) {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(false);
+                                    } else {
+                                        ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(true);
+                                    }
                                 }
                             }
                             break;
                         }
-                        case "avoid motorway": {
-                            if (transportOption != null && transportOption.equals("car")) {
-                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).isChecked()) {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(false);
-                                } else {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(true);
-                                }
-                            }
-                            break;
-                        }
-                        case "avoid ferry": {
-                            if (transportOption != null && transportOption.equals("car")) {
-                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).isChecked()) {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(false);
-                                } else {
-                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(true);
-                                }
-                            }
-                            break;
-                        }
+//                        case "avoid tolls": {
+//                            popupWindow.dismiss();
+//                            if (transportOption != null && transportOption.equals("car")) {
+//                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).isChecked()) {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(false);
+//                                } else {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setChecked(true);
+//                                }
+//                            }
+//                            break;
+//                        }
+//                        case "avoid motorway": {
+//                            popupWindow.dismiss();
+//                            if (transportOption != null && transportOption.equals("car")) {
+//                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).isChecked()) {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(false);
+//                                } else {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setChecked(true);
+//                                }
+//                            }
+//                            break;
+//                        }
+//                        case "avoid ferry": {
+//                            popupWindow.dismiss();
+//                            if (transportOption != null && transportOption.equals("car")) {
+//                                if (((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).isChecked()) {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(false);
+//                                } else {
+//                                    ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setChecked(true);
+//                                }
+//                            }
+//                            break;
+//                        }
                     }
+                    popupWindow.dismiss();
                 }
             }
 
@@ -305,9 +334,6 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
         if (selectedRadioButton.getText().toString().equals("Car")) {
             transportOption = "car";
             routeOptions.setVisibility(View.VISIBLE);
-//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option1)).setText("Avoid tolls");
-//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option2)).setText("Avoid motorway");
-//            ((CheckBox) routeOptions.findViewById(R.id.checkBox_option3)).setText("Avoid ferry");
         } else if (selectedRadioButton.getText().toString().equals("Public transport")) {
             transportOption = "public transport";
             routeOptions.setVisibility(View.GONE);
@@ -330,43 +356,25 @@ public class DirectionsActivity extends AppCompatActivity implements View.OnClic
             uri = "https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=" + start.getText().toString() + "&destination=" + destination;
         }
 
+        uri+="&dirflg=t";
+
+
+
+
+
         Log.d("START", start.getText().toString());
         Log.d("DESTINATION", destination);
 
-        CheckBox option1, option2, option3;
-        option1 = routeOptions.findViewById(R.id.checkBox_option1);
-        option2 = routeOptions.findViewById(R.id.checkBox_option2);
-        option3 = routeOptions.findViewById(R.id.checkBox_option3);
-        boolean avoidTolls = option1.isChecked();
-        boolean avoidMotorways = option2.isChecked();
-        boolean avoidFerries = option3.isChecked();
-
-        StringBuilder avoidParams = new StringBuilder();
-
-        if (avoidTolls) {
-            avoidParams.append("tolls");
-        }
-
-        if (avoidMotorways) {
-            if (avoidParams.length() > 0) {
-                avoidParams.append("|");
-            }
-            avoidParams.append("highways");
-        }
-
-        if (avoidFerries) {
-            if (avoidParams.length() > 0) {
-                avoidParams.append("|");
-            }
-            avoidParams.append("ferries");
-        }
-
-        if (avoidParams.length() > 0) {
-            uri += "&avoid=" + avoidParams.toString();
-        }
-
+//        CheckBox option1, option2, option3;
+//        option1 = routeOptions.findViewById(R.id.checkBox_option1);
+//        option2 = routeOptions.findViewById(R.id.checkBox_option2);
+//        option3 = routeOptions.findViewById(R.id.checkBox_option3);
+//        boolean avoidTolls = option1.isChecked();
+//        boolean avoidMotorways = option2.isChecked();
+//        boolean avoidFerries = option3.isChecked();
 
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        Log.d("TAG",Uri.parse(uri).toString());
         intent.setPackage("com.google.android.apps.maps");  // Specify the package to ensure it opens in Maps app
 
         // Check if there is a Maps app installed on the device

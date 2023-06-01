@@ -71,7 +71,7 @@ public class Help extends AppCompatActivity implements View.OnClickListener {
         activityCommands.put("NoteActivity", Arrays.asList("Back : Go back", "Clear [title/note] : Clears the note's title or the note", "Title [input] : Sets the title",
                 "Note [input] : Sets the note's context", "New line : Appends a new line to the note's context", "Store : Saves the note"));
 
-        activityCommands.put("AllNotesActivity", Arrays.asList("Back : Go back", "View [note number] : Provide a note's number and view/edit it",
+        activityCommands.put("AllNotesActivity", Arrays.asList("Back : Go back", "Open [note number] : Provide a note's number and view/edit it",
                 "Delete [note number] : Delete corresponding note", "Scroll down/up : Scrolls the list"));
 
         activityCommands.put("AllRemindersActivity", Arrays.asList("Back : Go back", "Scroll down/up : Scrolls the list", "Edit [reminder ID] : Edit reminder"
